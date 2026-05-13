@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime"
@@ -22,6 +23,16 @@ func NewFileRecordHandler(svc service.FileRecordSvc) fileRecordHandler {
 		svc: svc,
 	}
 
+}
+
+func (h *fileRecordHandler) ListRecords(w http.ResponseWriter, r *http.Request) {
+	records, err := h.svc.ListRecords(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(records)
 }
 
 func (h *fileRecordHandler) Erase(w http.ResponseWriter, r *http.Request) {

@@ -42,15 +42,15 @@ func (repo *pgFileRecordRepo) List(ctx context.Context) ([]repository.FileRecord
 
 	var res []repository.FileRecord
 
-	for i, rec := range records {
-		res[i] = repository.FileRecord{
+	for _, rec := range records {
+		res = append(res, repository.FileRecord{
 			ID:         rec.ID,
 			Filename:   rec.Filename,
 			MIMEType:   rec.MimeType,
 			Size:       rec.Size,
 			Path:       rec.Path,
 			UploadedAt: rec.UploadedAt,
-		}
+		})
 	}
 
 	return res, nil

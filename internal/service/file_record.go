@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,6 +38,15 @@ func extFromMIME(mimeType string) string {
 		return ext
 	}
 	return ""
+}
+
+func (s *FileRecordSvc) ListRecords(ctx context.Context) ([]repository.FileRecord, error) {
+	records, err := s.repo.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return records, nil
 }
 
 func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID) error {
@@ -87,7 +97,11 @@ func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata repos
 	}
 
 	uuid := uuid.New()
-	file_name := uuid.String() + extFromMIME(metadata.MimeType)
+	mime := extFromMIME(metadata.MimeType)
+	if mime == "" {
+		return nil, errors.New("invalid media type")
+	}
+	file_name := uuid.String() + mime
 
 	new_filepath := filepath.Join(dir, file_name)
 
