@@ -2,12 +2,15 @@ package handler
 
 import (
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/chgrape/storage-app/internal/repository"
 	"github.com/chgrape/storage-app/internal/service"
+	"github.com/google/uuid"
 )
 
 type fileRecordHandler struct {
@@ -19,6 +22,47 @@ func NewFileRecordHandler(svc service.FileRecordSvc) fileRecordHandler {
 		svc: svc,
 	}
 
+}
+
+func (h *fileRecordHandler) Erase(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.Erase(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintln(w, "Record successfully deleted")
+}
+
+func (h *fileRecordHandler) Download(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rec, file, err := h.svc.Download(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	w.Header().Add("Content-Type", rec.MIMEType)
+	w.Header().Add("Content-Length", strconv.FormatInt(rec.Size, 10))
+	_, err = io.Copy(w, file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func (h *fileRecordHandler) Upload(w http.ResponseWriter, r *http.Request) {

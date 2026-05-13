@@ -39,6 +39,39 @@ func extFromMIME(mimeType string) string {
 	return ""
 }
 
+func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID) error {
+	rec, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(rec.Path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID) (repository.FileRecord, *os.File, error) {
+	record, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return repository.FileRecord{}, nil, err
+	}
+
+	file, err := os.Open(record.Path)
+	if err != nil {
+		return repository.FileRecord{}, nil, err
+	}
+
+	return record, file, nil
+}
+
 func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata repository.Metadata) (*uuid.UUID, error) {
 	path, err := filepath.Abs("./uploads")
 	if err != nil {

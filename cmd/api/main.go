@@ -39,6 +39,8 @@ func main() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /upload", h.Upload)
+	router.HandleFunc("GET /download/{id}", h.Download)
+	router.HandleFunc("DELETE /delete/{id}", h.Erase)
 
 	http.ListenAndServe("localhost:8081", router)
 }
