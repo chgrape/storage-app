@@ -12,31 +12,43 @@ import (
 	"github.com/google/uuid"
 )
 
-const createRecord = `-- name: CreateRecord :exec
+const createRecord = `-- name: CreateRecord :one
 INSERT INTO records (
-  filename, mime_type, size, path, created_at
+  id, filename, mime_type, size, path, uploaded_at
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4, $5, $6
 )
+RETURNING id, filename, mime_type, size, path, uploaded_at
 `
 
 type CreateRecordParams struct {
-	Filename  string
-	MimeType  string
-	Size      int64
-	Path      string
-	CreatedAt time.Time
+	ID         uuid.UUID
+	Filename   string
+	MimeType   string
+	Size       int64
+	Path       string
+	UploadedAt time.Time
 }
 
-func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) error {
-	_, err := q.db.Exec(ctx, createRecord,
+func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Record, error) {
+	row := q.db.QueryRow(ctx, createRecord,
+		arg.ID,
 		arg.Filename,
 		arg.MimeType,
 		arg.Size,
 		arg.Path,
-		arg.CreatedAt,
+		arg.UploadedAt,
 	)
-	return err
+	var i Record
+	err := row.Scan(
+		&i.ID,
+		&i.Filename,
+		&i.MimeType,
+		&i.Size,
+		&i.Path,
+		&i.UploadedAt,
+	)
+	return i, err
 }
 
 const deleteRecord = `-- name: DeleteRecord :exec
@@ -50,7 +62,7 @@ func (q *Queries) DeleteRecord(ctx context.Context, id uuid.UUID) error {
 }
 
 const getRecord = `-- name: GetRecord :one
-SELECT id, filename, mime_type, size, path, created_at, uploaded_at FROM records
+SELECT id, filename, mime_type, size, path, uploaded_at FROM records
 WHERE id = $1 LIMIT 1
 `
 
@@ -63,15 +75,13 @@ func (q *Queries) GetRecord(ctx context.Context, id uuid.UUID) (Record, error) {
 		&i.MimeType,
 		&i.Size,
 		&i.Path,
-		&i.CreatedAt,
 		&i.UploadedAt,
 	)
 	return i, err
 }
 
 const listRecords = `-- name: ListRecords :many
-SELECT id, filename, mime_type, size, path, created_at, uploaded_at FROM records
-ORDER BY created_at
+SELECT id, filename, mime_type, size, path, uploaded_at FROM records
 `
 
 func (q *Queries) ListRecords(ctx context.Context) ([]Record, error) {
@@ -89,7 +99,6 @@ func (q *Queries) ListRecords(ctx context.Context) ([]Record, error) {
 			&i.MimeType,
 			&i.Size,
 			&i.Path,
-			&i.CreatedAt,
 			&i.UploadedAt,
 		); err != nil {
 			return nil, err

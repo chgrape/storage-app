@@ -29,7 +29,6 @@ func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID) (repository
 		MIMEType:   rec.MimeType,
 		Size:       rec.Size,
 		Path:       rec.Path,
-		CreatedAt:  rec.CreatedAt,
 		UploadedAt: rec.UploadedAt,
 	}, nil
 
@@ -50,7 +49,6 @@ func (repo *pgFileRecordRepo) List(ctx context.Context) ([]repository.FileRecord
 			MIMEType:   rec.MimeType,
 			Size:       rec.Size,
 			Path:       rec.Path,
-			CreatedAt:  rec.CreatedAt,
 			UploadedAt: rec.UploadedAt,
 		}
 	}
@@ -58,15 +56,23 @@ func (repo *pgFileRecordRepo) List(ctx context.Context) ([]repository.FileRecord
 	return res, nil
 }
 
-func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord) error {
-	err := repo.q.CreateRecord(ctx, pgsql.CreateRecordParams{
-		Filename:  f.Filename,
-		Path:      f.Path,
-		MimeType:  f.MIMEType,
-		Size:      f.Size,
-		CreatedAt: f.CreatedAt,
+func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord) (repository.FileRecord, error) {
+	rec, err := repo.q.CreateRecord(ctx, pgsql.CreateRecordParams{
+		ID:         f.ID,
+		Filename:   f.Filename,
+		Path:       f.Path,
+		MimeType:   f.MIMEType,
+		Size:       f.Size,
+		UploadedAt: f.UploadedAt,
 	})
-	return err
+	return repository.FileRecord{
+		ID:         rec.ID,
+		Filename:   rec.Filename,
+		Path:       rec.Path,
+		MIMEType:   rec.MimeType,
+		Size:       rec.Size,
+		UploadedAt: rec.UploadedAt,
+	}, err
 }
 
 func NewPgFileRecordRepo(q *pgsql.Queries) repository.FileRecordRepo {

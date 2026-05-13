@@ -5,15 +5,15 @@ SELECT * FROM records
 WHERE id = $1 LIMIT 1;
 
 -- name: ListRecords :many
-SELECT * FROM records
-ORDER BY created_at;
+SELECT * FROM records;
 
--- name: CreateRecord :exec
+-- name: CreateRecord :one
 INSERT INTO records (
-  filename, mime_type, size, path, created_at
+  id, filename, mime_type, size, path, uploaded_at
 ) VALUES (
-  $1, $2, $3, $4, $5
-);
+  $1, $2, $3, $4, $5, $6
+)
+RETURNING *;
 
 -- name: DeleteRecord :exec
 DELETE FROM records

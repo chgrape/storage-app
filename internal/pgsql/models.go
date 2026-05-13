@@ -16,6 +16,5 @@ type Record struct {
 	MimeType   string
 	Size       int64
 	Path       string
-	CreatedAt  time.Time
 	UploadedAt time.Time
 }
