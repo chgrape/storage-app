@@ -183,7 +183,13 @@ func main() {
 	src := uploadCmd.String("src", "", "Source file path")
 
 	if len(os.Args) < 2 {
-		fmt.Printf("CLI tool for the storage system. Use either 'download' or 'upload' to interact with the files")
+		fmt.Println("CLI tool for the storage system\n")
+		fmt.Println("Usage: tube COMMAND\n")
+		fmt.Println(`Commands:
+	delete			Deletes media
+	upload			Uploads a media file
+	download		Downloads a file to the local filesystem
+	list			Lists all records of the available files in the storage system`)
 		os.Exit(0)
 	}
 
@@ -191,6 +197,11 @@ func main() {
 
 	switch os.Args[1] {
 	case "delete":
+		if len(os.Args) == 2 {
+			fmt.Println("The 'delete' command is used to delete records from the storage system")
+			fmt.Printf(`Usage: tube delete -id int`)
+			os.Exit(0)
+		}
 		deleteCmd.Parse(os.Args[2:])
 		if *deleteId == 0 {
 			fmt.Println("Invalid id")
@@ -202,6 +213,11 @@ func main() {
 		}
 
 	case "upload":
+		if len(os.Args) == 2 {
+			fmt.Println("The 'upload' command is used to upload media files from the local filesystem to the storage system")
+			fmt.Printf(`Usage: tube upload -src string`)
+			os.Exit(0)
+		}
 		uploadCmd.Parse(os.Args[2:])
 		if *src == "" {
 			fmt.Println("Invalid source path")
@@ -233,6 +249,11 @@ func main() {
 		}
 
 	case "download":
+		if len(os.Args) == 2 {
+			fmt.Println("The 'download' command is used to download media files from the storage system into a destination directory on the local filesystem.")
+			fmt.Printf(`Usage: tube download -id int -dst string`)
+			os.Exit(0)
+		}
 		downloadCmd.Parse(os.Args[2:])
 		if *dst == "" || *id == 0 {
 			fmt.Println("Invalid destination path or id")
