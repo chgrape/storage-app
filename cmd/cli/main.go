@@ -15,6 +15,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/chgrape/storage-app/internal/repository"
+	"github.com/google/uuid"
 )
 
 func fetchList(c http.Client) ([]repository.FileRecord, error) {
@@ -117,10 +118,56 @@ func upload(c http.Client, src string) error {
 
 	res, err := c.Post("http://localhost:8081/upload", writer.FormDataContentType(), body)
 
+	b, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(res.Body)
 		return fmt.Errorf("upload failed: %s", string(b))
 	}
+
+	fmt.Println(string(b))
+
+	return nil
+}
+
+func delete(c http.Client, id int) error {
+	records, err := fetchList(c)
+	if err != nil {
+		return err
+	}
+
+	if id < 1 || id > len(records) {
+		return errors.New("invalid index")
+	}
+	var u uuid.NullUUID
+
+	for i, r := range records {
+		if i+1 == id {
+			u.UUID = r.ID
+			u.Valid = true
+		}
+	}
+
+	if !u.Valid {
+		return errors.New("record not found")
+	}
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8081/delete/%s", u.UUID.String()), nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	b, _ := io.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("delete failed: %s", string(b))
+	}
+
+	fmt.Println(string(b))
+
 	return nil
 }
 
@@ -128,9 +175,11 @@ func main() {
 	downloadCmd := flag.NewFlagSet("download", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 	uploadCmd := flag.NewFlagSet("upload", flag.ExitOnError)
+	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
 
 	dst := downloadCmd.String("dst", "", "Destination of downloaded file")
 	id := downloadCmd.Int("id", 0, "Id of file to be downloaded")
+	deleteId := deleteCmd.Int("id", 0, "Id of file to be deleted")
 	src := uploadCmd.String("src", "", "Source file path")
 
 	if len(os.Args) < 2 {
@@ -141,19 +190,30 @@ func main() {
 	c := http.Client{}
 
 	switch os.Args[1] {
+	case "delete":
+		deleteCmd.Parse(os.Args[2:])
+		if *deleteId == 0 {
+			fmt.Println("Invalid id")
+			os.Exit(1)
+		}
+		if err := delete(c, *deleteId); err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
+		}
+
 	case "upload":
 		uploadCmd.Parse(os.Args[2:])
 		if *src == "" {
-			fmt.Println("Invalid source path or id")
+			fmt.Println("Invalid source path")
 			os.Exit(1)
 		}
 		info, err := os.Stat(*src)
 		if err != nil {
-			fmt.Println("Directory doesn't exist")
+			fmt.Println("File doesn't exist")
 			os.Exit(1)
 		}
-		if info.IsDir() == false {
-			fmt.Printf("%s is not a directory\n", *src)
+		if info.IsDir() == true {
+			fmt.Printf("%s is not a file\n", *src)
 			os.Exit(1)
 		}
 		if err := upload(c, *src); err != nil {

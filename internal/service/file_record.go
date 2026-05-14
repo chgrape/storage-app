@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"io"
-	"os"
 	"time"
 
 	"github.com/chgrape/storage-app/internal/repository"
@@ -43,7 +42,7 @@ func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	err = os.Remove(rec.Path)
+	err = s.store.Delete(ctx, rec.Path)
 	if err != nil {
 		return err
 	}
@@ -57,7 +56,7 @@ func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID) (repository.
 		return repository.FileRecord{}, nil, err
 	}
 
-	file, err := os.Open(record.Path)
+	file, err := s.store.Download(ctx, record.Path)
 	if err != nil {
 		return repository.FileRecord{}, nil, err
 	}
