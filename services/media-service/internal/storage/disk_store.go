@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chgrape/storage-app/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 )
 
 type DiskStore struct {

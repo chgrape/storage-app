@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/chgrape/storage-app/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 )
 
 type Store interface {

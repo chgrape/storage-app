@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chgrape/storage-app/internal/handler"
-	"github.com/chgrape/storage-app/internal/pgsql"
-	"github.com/chgrape/storage-app/internal/service"
-	"github.com/chgrape/storage-app/internal/storage"
+	"github.com/chgrape/storage-app/services/media-service/internal/handler"
+	"github.com/chgrape/storage-app/services/media-service/internal/pgsql"
+	"github.com/chgrape/storage-app/services/media-service/internal/service"
+	"github.com/chgrape/storage-app/services/media-service/internal/storage"
 	"github.com/joho/godotenv"
 )
 

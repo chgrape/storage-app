@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/chgrape/storage-app/internal/repository"
-	"github.com/chgrape/storage-app/internal/service"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/service"
 	"github.com/google/uuid"
 )
 

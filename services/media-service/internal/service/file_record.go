@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/chgrape/storage-app/internal/repository"
-	"github.com/chgrape/storage-app/internal/storage"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/storage"
 	"github.com/google/uuid"
 )
 

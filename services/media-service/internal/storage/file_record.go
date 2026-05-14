@@ -3,8 +3,8 @@ package storage
 import (
 	"context"
 
-	"github.com/chgrape/storage-app/internal/pgsql"
-	"github.com/chgrape/storage-app/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/pgsql"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/google/uuid"
 )
 
