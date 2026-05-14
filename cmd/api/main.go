@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/chgrape/storage-app/internal/handler"
 	"github.com/chgrape/storage-app/internal/pgsql"
@@ -32,8 +33,15 @@ func main() {
 	}
 	q := pgsql.New(pool)
 
+	uploadDir, err := filepath.Abs("./uploads")
+	if err != nil {
+		log.Fatalf("Upload directory doesn't exist")
+		return
+	}
+
 	repo := storage.NewPgFileRecordRepo(q)
-	svc := service.NewFileRecordSvc(repo)
+	store := storage.NewDiskStore(uploadDir)
+	svc := service.NewFileRecordSvc(repo, store)
 	h := handler.NewFileRecordHandler(svc)
 
 	router := http.NewServeMux()

@@ -147,6 +147,15 @@ func main() {
 			fmt.Println("Invalid source path or id")
 			os.Exit(1)
 		}
+		info, err := os.Stat(*src)
+		if err != nil {
+			fmt.Println("Directory doesn't exist")
+			os.Exit(1)
+		}
+		if info.IsDir() == false {
+			fmt.Printf("%s is not a directory\n", *src)
+			os.Exit(1)
+		}
 		if err := upload(c, *src); err != nil {
 			fmt.Println("error:", err)
 			os.Exit(1)
