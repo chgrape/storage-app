@@ -1,0 +1,50 @@
+syntax = "proto3";
+package media;
+
+option go_package = "github.com/chgrape/storage-app/shared/proto";
+
+service Media {
+    rpc Upload(UploadRequest) returns (UploadResponse);
+    rpc Download(DownloadRequest) returns (stream DownloadResponse);
+    rpc List(ListRequest) returns (ListResponse);
+    rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
+
+message UploadRequest {
+    string filename = 1;
+    string mime = 2;
+    int64 size = 3;
+    bytes data = 4;
+}
+
+message UploadResponse {
+    string id = 1;
+    string filename = 2;
+    string mime_type = 3;
+    int64  size = 4;
+    string uploaded_at = 5;
+}
+
+message DownloadRequest {
+    string id = 1;
+}
+
+message DownloadResponse {
+    bytes data = 1;
+    string filename = 2;
+    string mime = 3;
+}
+
+message ListRequest {}
+
+message ListResponse {
+    repeated UploadResponse files = 1;
+}
+
+message DeleteRequest {
+    string id = 1;
+}
+
+message DeleteResponse {
+    bool success = 1;
+}

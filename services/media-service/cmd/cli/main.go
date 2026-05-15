@@ -14,12 +14,13 @@ import (
 	"strconv"
 	"text/tabwriter"
 
-	"github.com/chgrape/storage-app/internal/repository"
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/google/uuid"
 )
 
 func fetchList(c http.Client) ([]repository.FileRecord, error) {
 	res, err := c.Get("http://localhost:8081/list")
+
 	if err != nil {
 		return nil, err
 	}
