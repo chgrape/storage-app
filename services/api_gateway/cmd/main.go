@@ -22,5 +22,7 @@ func main() {
 
 	mux.HandleFunc("GET /download/{id}", h.Download)
 	mux.HandleFunc("GET /list", h.List)
+	mux.HandleFunc("POST /upload", h.Upload)
+	mux.HandleFunc("DELETE /delete/{id}", h.Erase)
 	http.ListenAndServe("localhost:8081", mux)
 }

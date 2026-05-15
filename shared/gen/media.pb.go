@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: shared/protobuf/media.proto
+// source: media.proto
 
 package proto
 
@@ -33,7 +33,7 @@ type UploadRequest struct {
 
 func (x *UploadRequest) Reset() {
 	*x = UploadRequest{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[0]
+	mi := &file_media_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *UploadRequest) String() string {
 func (*UploadRequest) ProtoMessage() {}
 
 func (x *UploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[0]
+	mi := &file_media_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *UploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadRequest.ProtoReflect.Descriptor instead.
 func (*UploadRequest) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{0}
+	return file_media_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *UploadRequest) GetFilename() string {
@@ -92,17 +92,13 @@ func (x *UploadRequest) GetData() []byte {
 type UploadResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
-	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
-	Size          int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
-	UploadedAt    string                 `protobuf:"bytes,5,opt,name=uploaded_at,json=uploadedAt,proto3" json:"uploaded_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UploadResponse) Reset() {
 	*x = UploadResponse{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[1]
+	mi := &file_media_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +110,7 @@ func (x *UploadResponse) String() string {
 func (*UploadResponse) ProtoMessage() {}
 
 func (x *UploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[1]
+	mi := &file_media_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,40 +123,12 @@ func (x *UploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadResponse.ProtoReflect.Descriptor instead.
 func (*UploadResponse) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{1}
+	return file_media_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *UploadResponse) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *UploadResponse) GetFilename() string {
-	if x != nil {
-		return x.Filename
-	}
-	return ""
-}
-
-func (x *UploadResponse) GetMimeType() string {
-	if x != nil {
-		return x.MimeType
-	}
-	return ""
-}
-
-func (x *UploadResponse) GetSize() int64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-func (x *UploadResponse) GetUploadedAt() string {
-	if x != nil {
-		return x.UploadedAt
 	}
 	return ""
 }
@@ -174,7 +142,7 @@ type DownloadRequest struct {
 
 func (x *DownloadRequest) Reset() {
 	*x = DownloadRequest{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[2]
+	mi := &file_media_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -186,7 +154,7 @@ func (x *DownloadRequest) String() string {
 func (*DownloadRequest) ProtoMessage() {}
 
 func (x *DownloadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[2]
+	mi := &file_media_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -199,7 +167,7 @@ func (x *DownloadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadRequest.ProtoReflect.Descriptor instead.
 func (*DownloadRequest) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{2}
+	return file_media_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DownloadRequest) GetId() string {
@@ -220,7 +188,7 @@ type DownloadResponse struct {
 
 func (x *DownloadResponse) Reset() {
 	*x = DownloadResponse{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[3]
+	mi := &file_media_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -232,7 +200,7 @@ func (x *DownloadResponse) String() string {
 func (*DownloadResponse) ProtoMessage() {}
 
 func (x *DownloadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[3]
+	mi := &file_media_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -245,7 +213,7 @@ func (x *DownloadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadResponse.ProtoReflect.Descriptor instead.
 func (*DownloadResponse) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{3}
+	return file_media_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DownloadResponse) GetData() []byte {
@@ -269,6 +237,82 @@ func (x *DownloadResponse) GetMime() string {
 	return ""
 }
 
+type FileRecord struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
+	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	Size          int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
+	UploadedAt    string                 `protobuf:"bytes,5,opt,name=uploaded_at,json=uploadedAt,proto3" json:"uploaded_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileRecord) Reset() {
+	*x = FileRecord{}
+	mi := &file_media_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileRecord) ProtoMessage() {}
+
+func (x *FileRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_media_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileRecord.ProtoReflect.Descriptor instead.
+func (*FileRecord) Descriptor() ([]byte, []int) {
+	return file_media_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *FileRecord) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FileRecord) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *FileRecord) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+func (x *FileRecord) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *FileRecord) GetUploadedAt() string {
+	if x != nil {
+		return x.UploadedAt
+	}
+	return ""
+}
+
 type ListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -277,7 +321,7 @@ type ListRequest struct {
 
 func (x *ListRequest) Reset() {
 	*x = ListRequest{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[4]
+	mi := &file_media_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -289,7 +333,7 @@ func (x *ListRequest) String() string {
 func (*ListRequest) ProtoMessage() {}
 
 func (x *ListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[4]
+	mi := &file_media_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -302,19 +346,19 @@ func (x *ListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRequest.ProtoReflect.Descriptor instead.
 func (*ListRequest) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{4}
+	return file_media_proto_rawDescGZIP(), []int{5}
 }
 
 type ListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Files         []*UploadResponse      `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
+	Files         []*FileRecord          `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListResponse) Reset() {
 	*x = ListResponse{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[5]
+	mi := &file_media_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -326,7 +370,7 @@ func (x *ListResponse) String() string {
 func (*ListResponse) ProtoMessage() {}
 
 func (x *ListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[5]
+	mi := &file_media_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -339,10 +383,10 @@ func (x *ListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResponse.ProtoReflect.Descriptor instead.
 func (*ListResponse) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{5}
+	return file_media_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ListResponse) GetFiles() []*UploadResponse {
+func (x *ListResponse) GetFiles() []*FileRecord {
 	if x != nil {
 		return x.Files
 	}
@@ -358,7 +402,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[6]
+	mi := &file_media_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +414,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[6]
+	mi := &file_media_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +427,7 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{6}
+	return file_media_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeleteRequest) GetId() string {
@@ -402,7 +446,7 @@ type DeleteResponse struct {
 
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
-	mi := &file_shared_protobuf_media_proto_msgTypes[7]
+	mi := &file_media_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -414,7 +458,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_protobuf_media_proto_msgTypes[7]
+	mi := &file_media_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +471,7 @@ func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResponse) Descriptor() ([]byte, []int) {
-	return file_shared_protobuf_media_proto_rawDescGZIP(), []int{7}
+	return file_media_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteResponse) GetSuccess() bool {
@@ -437,32 +481,35 @@ func (x *DeleteResponse) GetSuccess() bool {
 	return false
 }
 
-var File_shared_protobuf_media_proto protoreflect.FileDescriptor
+var File_media_proto protoreflect.FileDescriptor
 
-const file_shared_protobuf_media_proto_rawDesc = "" +
+const file_media_proto_rawDesc = "" +
 	"\n" +
-	"\x1bshared/protobuf/media.proto\x12\x05media\"g\n" +
+	"\vmedia.proto\x12\x05media\"g\n" +
 	"\rUploadRequest\x12\x1a\n" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\x12\x12\n" +
 	"\x04mime\x18\x02 \x01(\tR\x04mime\x12\x12\n" +
 	"\x04size\x18\x03 \x01(\x03R\x04size\x12\x12\n" +
-	"\x04data\x18\x04 \x01(\fR\x04data\"\x8e\x01\n" +
+	"\x04data\x18\x04 \x01(\fR\x04data\" \n" +
 	"\x0eUploadResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
-	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
-	"\tmime_type\x18\x03 \x01(\tR\bmimeType\x12\x12\n" +
-	"\x04size\x18\x04 \x01(\x03R\x04size\x12\x1f\n" +
-	"\vuploaded_at\x18\x05 \x01(\tR\n" +
-	"uploadedAt\"!\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"!\n" +
 	"\x0fDownloadRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"V\n" +
 	"\x10DownloadResponse\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x12\n" +
-	"\x04mime\x18\x03 \x01(\tR\x04mime\"\r\n" +
-	"\vListRequest\";\n" +
-	"\fListResponse\x12+\n" +
-	"\x05files\x18\x01 \x03(\v2\x15.media.UploadResponseR\x05files\"\x1f\n" +
+	"\x04mime\x18\x03 \x01(\tR\x04mime\"\x8a\x01\n" +
+	"\n" +
+	"FileRecord\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
+	"\tmime_type\x18\x03 \x01(\tR\bmimeType\x12\x12\n" +
+	"\x04size\x18\x04 \x01(\x03R\x04size\x12\x1f\n" +
+	"\vuploaded_at\x18\x05 \x01(\tR\n" +
+	"uploadedAt\"\r\n" +
+	"\vListRequest\"7\n" +
+	"\fListResponse\x12'\n" +
+	"\x05files\x18\x01 \x03(\v2\x11.media.FileRecordR\x05files\"\x1f\n" +
 	"\rDeleteRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"*\n" +
 	"\x0eDeleteResponse\x12\x18\n" +
@@ -474,38 +521,39 @@ const file_shared_protobuf_media_proto_rawDesc = "" +
 	"\x06Delete\x12\x14.media.DeleteRequest\x1a\x15.media.DeleteResponseB-Z+github.com/chgrape/storage-app/shared/protob\x06proto3"
 
 var (
-	file_shared_protobuf_media_proto_rawDescOnce sync.Once
-	file_shared_protobuf_media_proto_rawDescData []byte
+	file_media_proto_rawDescOnce sync.Once
+	file_media_proto_rawDescData []byte
 )
 
-func file_shared_protobuf_media_proto_rawDescGZIP() []byte {
-	file_shared_protobuf_media_proto_rawDescOnce.Do(func() {
-		file_shared_protobuf_media_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_protobuf_media_proto_rawDesc), len(file_shared_protobuf_media_proto_rawDesc)))
+func file_media_proto_rawDescGZIP() []byte {
+	file_media_proto_rawDescOnce.Do(func() {
+		file_media_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_media_proto_rawDesc), len(file_media_proto_rawDesc)))
 	})
-	return file_shared_protobuf_media_proto_rawDescData
+	return file_media_proto_rawDescData
 }
 
-var file_shared_protobuf_media_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_shared_protobuf_media_proto_goTypes = []any{
+var file_media_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_media_proto_goTypes = []any{
 	(*UploadRequest)(nil),    // 0: media.UploadRequest
 	(*UploadResponse)(nil),   // 1: media.UploadResponse
 	(*DownloadRequest)(nil),  // 2: media.DownloadRequest
 	(*DownloadResponse)(nil), // 3: media.DownloadResponse
-	(*ListRequest)(nil),      // 4: media.ListRequest
-	(*ListResponse)(nil),     // 5: media.ListResponse
-	(*DeleteRequest)(nil),    // 6: media.DeleteRequest
-	(*DeleteResponse)(nil),   // 7: media.DeleteResponse
+	(*FileRecord)(nil),       // 4: media.FileRecord
+	(*ListRequest)(nil),      // 5: media.ListRequest
+	(*ListResponse)(nil),     // 6: media.ListResponse
+	(*DeleteRequest)(nil),    // 7: media.DeleteRequest
+	(*DeleteResponse)(nil),   // 8: media.DeleteResponse
 }
-var file_shared_protobuf_media_proto_depIdxs = []int32{
-	1, // 0: media.ListResponse.files:type_name -> media.UploadResponse
+var file_media_proto_depIdxs = []int32{
+	4, // 0: media.ListResponse.files:type_name -> media.FileRecord
 	0, // 1: media.Media.Upload:input_type -> media.UploadRequest
 	2, // 2: media.Media.Download:input_type -> media.DownloadRequest
-	4, // 3: media.Media.List:input_type -> media.ListRequest
-	6, // 4: media.Media.Delete:input_type -> media.DeleteRequest
+	5, // 3: media.Media.List:input_type -> media.ListRequest
+	7, // 4: media.Media.Delete:input_type -> media.DeleteRequest
 	1, // 5: media.Media.Upload:output_type -> media.UploadResponse
 	3, // 6: media.Media.Download:output_type -> media.DownloadResponse
-	5, // 7: media.Media.List:output_type -> media.ListResponse
-	7, // 8: media.Media.Delete:output_type -> media.DeleteResponse
+	6, // 7: media.Media.List:output_type -> media.ListResponse
+	8, // 8: media.Media.Delete:output_type -> media.DeleteResponse
 	5, // [5:9] is the sub-list for method output_type
 	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -513,26 +561,26 @@ var file_shared_protobuf_media_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_shared_protobuf_media_proto_init() }
-func file_shared_protobuf_media_proto_init() {
-	if File_shared_protobuf_media_proto != nil {
+func init() { file_media_proto_init() }
+func file_media_proto_init() {
+	if File_media_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_protobuf_media_proto_rawDesc), len(file_shared_protobuf_media_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_proto_rawDesc), len(file_media_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_protobuf_media_proto_goTypes,
-		DependencyIndexes: file_shared_protobuf_media_proto_depIdxs,
-		MessageInfos:      file_shared_protobuf_media_proto_msgTypes,
+		GoTypes:           file_media_proto_goTypes,
+		DependencyIndexes: file_media_proto_depIdxs,
+		MessageInfos:      file_media_proto_msgTypes,
 	}.Build()
-	File_shared_protobuf_media_proto = out.File
-	file_shared_protobuf_media_proto_goTypes = nil
-	file_shared_protobuf_media_proto_depIdxs = nil
+	File_media_proto = out.File
+	file_media_proto_goTypes = nil
+	file_media_proto_depIdxs = nil
 }

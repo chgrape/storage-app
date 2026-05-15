@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"time"
 
+	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/chgrape/storage-app/services/media-service/internal/service"
 	pb "github.com/chgrape/storage-app/shared/gen"
 	"github.com/google/uuid"
@@ -23,7 +25,19 @@ func NewGRPCServer(svc *service.FileRecordSvc) server {
 }
 
 func (s *server) Upload(ctx context.Context, uploadRequest *pb.UploadRequest) (*pb.UploadResponse, error) {
-	return nil, nil
+	reader := bytes.NewReader(uploadRequest.Data)
+	id, err := s.svc.Save(ctx, reader, repository.Metadata{
+		Filename: uploadRequest.Filename,
+		MimeType: uploadRequest.Mime,
+		Size:     uploadRequest.Size,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.UploadResponse{
+		Id: id.String(),
+	}, nil
 }
 
 func (s *server) Download(downloadRequest *pb.DownloadRequest, stream grpc.ServerStreamingServer[pb.DownloadResponse]) error {
@@ -67,7 +81,7 @@ func (s *server) List(ctx context.Context, req *pb.ListRequest) (*pb.ListRespons
 	res := &pb.ListResponse{}
 
 	for _, r := range records {
-		res.Files = append(res.Files, &pb.UploadResponse{
+		res.Files = append(res.Files, &pb.FileRecord{
 			Id:         r.ID.String(),
 			Filename:   r.Filename,
 			MimeType:   r.MIMEType,
@@ -78,6 +92,16 @@ func (s *server) List(ctx context.Context, req *pb.ListRequest) (*pb.ListRespons
 
 	return res, nil
 }
-func (s *server) Delete(context.Context, *pb.DeleteRequest) (*pb.DeleteResponse, error) {
-	return nil, nil
+func (s *server) Delete(ctx context.Context, deleteRequest *pb.DeleteRequest) (*pb.DeleteResponse, error) {
+	id, err := uuid.Parse(deleteRequest.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.svc.Erase(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteResponse{Success: true}, nil
 }

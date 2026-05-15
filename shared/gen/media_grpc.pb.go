@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: shared/protobuf/media.proto
+// source: media.proto
 
 package proto
 
@@ -235,5 +235,5 @@ var Media_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "shared/protobuf/media.proto",
+	Metadata: "media.proto",
 }
