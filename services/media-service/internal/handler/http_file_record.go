@@ -1,5 +1,9 @@
 package handler
 
+//
+// REDUNDANT
+//
+
 import (
 	"encoding/json"
 	"fmt"

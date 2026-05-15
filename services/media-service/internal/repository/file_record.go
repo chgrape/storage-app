@@ -14,12 +14,12 @@ type Metadata struct {
 }
 
 type FileRecord struct {
-	ID         uuid.UUID
-	Filename   string
-	MIMEType   string
-	Size       int64
-	Path       string
-	UploadedAt time.Time
+	ID         uuid.UUID `json:"id"`
+	Filename   string    `json:"filename"`
+	MIMEType   string    `json:"mime_type"`
+	Size       int64     `json:"size"`
+	Path       string    `json:"path"`
+	UploadedAt time.Time `json:"uploaded_at"`
 }
 
 type FileRecordRepo interface {
