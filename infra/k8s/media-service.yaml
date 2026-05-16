@@ -12,10 +12,37 @@ spec:
         app: media-app
     spec:
       containers:
-      - name: media-app
-        image: media-service:latest
-        ports:
-        - containerPort: 8081
+        - name: media-app
+          image: chgrape69/media-service:latest
+          env:
+          # database url was created from cnpg secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: media-secrets
+                  key: DATABASE_URL
+            - name: GRPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: grpc_port
+            - name: DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: data_dir
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: environ
+          volumeMounts:
+            - name: media-storage
+              mountPath: /upload
+      volumes:
+        - name: media-storage
+          persistentVolumeClaim:
+            claimName: media-storage-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -25,5 +52,5 @@ spec:
   selector:
     app: media-app
   ports:
-  - port: 8081
-    targetPort: 8081
+  - port: 9090
+    targetPort: 9090

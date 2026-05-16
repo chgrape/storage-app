@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: media-migrate
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: postgres:bookworm
+          command: ["psql", "$(DATABASE_URL)", "-f", "/migrations/schema.sql"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: media-secrets
+                  key: DATABASE_URL
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+      # to create this volume, create a configmap from the file 'schema.sql'  
+      volumes:
+        - name: migrations
+          configMap:
+            name: media-migrations
+      restartPolicy: Never

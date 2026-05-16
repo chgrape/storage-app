@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
@@ -12,41 +13,54 @@ import (
 	"github.com/chgrape/storage-app/services/media-service/internal/storage"
 	"github.com/chgrape/storage-app/shared"
 	pb "github.com/chgrape/storage-app/shared/gen"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(1)
+	var err error
+	var cfg shared.Config
+	var pool *pgxpool.Pool
+	var uploadDir string
+
+	if os.Getenv("ENVIORNMENT") == "dev" {
+		err = godotenv.Load()
+		if err != nil {
+			panic(1)
+		}
+		cfg = shared.Config{
+			Host: os.Getenv("POSTGRES_HOST"),
+			User: os.Getenv("POSTGRES_USER"),
+			Pass: os.Getenv("POSTGRES_PASS"),
+			Port: os.Getenv("POSTGRES_PORT"),
+			DB:   os.Getenv("POSTGRES_DB"),
+		}
+		pool, err = shared.Connect(cfg)
+		if err != nil {
+			log.Fatalf("Connection to database couldn't be established: %v", err)
+		}
+		uploadDir, err = filepath.Abs("./uploads")
+		if err != nil {
+			log.Fatalf("Upload directory doesn't exist")
+			return
+		}
+	} else if os.Getenv("ENVIRONMENT") == "prod" {
+		pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+		if err != nil {
+			log.Fatalf("Connection to database couldn't be established: %v", err)
+		}
+	} else {
+		log.Fatalf("Connection to database couldn't be established: %v", err)
 	}
 
-	cfg := shared.Config{
-		Host: os.Getenv("POSTGRES_HOST"),
-		User: os.Getenv("POSTGRES_USER"),
-		Pass: os.Getenv("POSTGRES_PASS"),
-		Port: os.Getenv("POSTGRES_PORT"),
-		DB:   os.Getenv("POSTGRES_DB"),
-	}
-
-	pool, err := shared.Connect(cfg)
-	if err != nil {
-		log.Fatalf("Connection to database couldn't be established")
-	}
 	q := pgsql.New(pool)
-
-	uploadDir, err := filepath.Abs("./uploads")
-	if err != nil {
-		log.Fatalf("Upload directory doesn't exist")
-		return
-	}
 
 	repo := storage.NewPgFileRecordRepo(q)
 	store := storage.NewDiskStore(uploadDir)
 	svc := service.NewFileRecordSvc(repo, store)
 
-	lis, err := net.Listen("tcp", ":9090")
+	lis, err := net.Listen("tcp", ":"+os.Getenv("GRPC_PORT"))
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
