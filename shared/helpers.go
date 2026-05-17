@@ -7,12 +7,22 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Config struct {
-	Host string
-	User string
-	Pass string
-	Port string
-	DB   string
+var extMap = map[string]string{
+	"image/jpeg":      ".jpg",
+	"image/png":       ".png",
+	"image/gif":       ".gif",
+	"image/webp":      ".webp",
+	"video/mp4":       ".mp4",
+	"video/quicktime": ".mov",
+	"video/x-msvideo": ".avi",
+	"video/webm":      ".webm",
+}
+
+func ExtFromMIME(mimeType string) string {
+	if ext, ok := extMap[mimeType]; ok {
+		return ext
+	}
+	return ""
 }
 
 func Connect(cfg Config) (*pgxpool.Pool, error) {

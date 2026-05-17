@@ -7,6 +7,7 @@ import (
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/chgrape/storage-app/services/media-service/internal/storage"
+	"github.com/chgrape/storage-app/shared"
 	"github.com/google/uuid"
 )
 
@@ -22,8 +23,8 @@ func NewFileRecordSvc(repo repository.FileRecordRepo, store storage.Store) FileR
 	}
 }
 
-func (s *FileRecordSvc) ListRecords(ctx context.Context) ([]repository.FileRecord, error) {
-	records, err := s.repo.List(ctx)
+func (s *FileRecordSvc) ListRecords(ctx context.Context, user_id uuid.UUID) ([]repository.FileRecord, error) {
+	records, err := s.repo.List(ctx, user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -31,13 +32,13 @@ func (s *FileRecordSvc) ListRecords(ctx context.Context) ([]repository.FileRecor
 	return records, nil
 }
 
-func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID) error {
-	rec, err := s.repo.Get(ctx, id)
+func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID, user_id uuid.UUID) error {
+	rec, err := s.repo.Get(ctx, id, user_id)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.Delete(ctx, id)
+	err = s.repo.Delete(ctx, id, user_id)
 	if err != nil {
 		return err
 	}
@@ -50,8 +51,8 @@ func (s *FileRecordSvc) Erase(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID) (repository.FileRecord, io.ReadCloser, error) {
-	record, err := s.repo.Get(ctx, id)
+func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID, user_id uuid.UUID) (repository.FileRecord, io.ReadCloser, error) {
+	record, err := s.repo.Get(ctx, id, user_id)
 	if err != nil {
 		return repository.FileRecord{}, nil, err
 	}
@@ -64,7 +65,7 @@ func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID) (repository.
 	return record, file, nil
 }
 
-func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata repository.Metadata) (*uuid.UUID, error) {
+func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata shared.Metadata) (*uuid.UUID, error) {
 	uuid := uuid.New()
 	upl := time.Now()
 

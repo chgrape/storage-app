@@ -12,13 +12,18 @@ type pgFileRecordRepo struct {
 	q *pgsql.Queries
 }
 
-func (repo *pgFileRecordRepo) Delete(ctx context.Context, id uuid.UUID) error {
-	err := repo.q.DeleteRecord(ctx, id)
-	return err
+func (repo *pgFileRecordRepo) Delete(ctx context.Context, id uuid.UUID, user_id uuid.UUID) error {
+	return repo.q.DeleteRecord(ctx, pgsql.DeleteRecordParams{
+		ID:     id,
+		UserID: user_id,
+	})
 }
 
-func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID) (repository.FileRecord, error) {
-	rec, err := repo.q.GetRecord(ctx, id)
+func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID, user_id uuid.UUID) (repository.FileRecord, error) {
+	rec, err := repo.q.GetRecord(ctx, pgsql.GetRecordParams{
+		ID:     id,
+		UserID: user_id,
+	})
 	if err != nil {
 		return repository.FileRecord{}, err
 	}
@@ -34,8 +39,8 @@ func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID) (repository
 
 }
 
-func (repo *pgFileRecordRepo) List(ctx context.Context) ([]repository.FileRecord, error) {
-	records, err := repo.q.ListRecords(ctx)
+func (repo *pgFileRecordRepo) List(ctx context.Context, user_id uuid.UUID) ([]repository.FileRecord, error) {
+	records, err := repo.q.ListRecords(ctx, user_id)
 	if err != nil {
 		return nil, err
 	}

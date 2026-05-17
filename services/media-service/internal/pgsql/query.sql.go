@@ -14,11 +14,11 @@ import (
 
 const createRecord = `-- name: CreateRecord :one
 INSERT INTO records (
-  id, filename, mime_type, size, path, uploaded_at
+  id, filename, mime_type, size, path, uploaded_at, user_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6
+  $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, filename, mime_type, size, path, uploaded_at
+RETURNING id, filename, mime_type, size, path, user_id, uploaded_at
 `
 
 type CreateRecordParams struct {
@@ -28,6 +28,7 @@ type CreateRecordParams struct {
 	Size       int64
 	Path       string
 	UploadedAt time.Time
+	UserID     uuid.UUID
 }
 
 func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Record, error) {
@@ -38,6 +39,7 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Rec
 		arg.Size,
 		arg.Path,
 		arg.UploadedAt,
+		arg.UserID,
 	)
 	var i Record
 	err := row.Scan(
@@ -46,6 +48,7 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Rec
 		&i.MimeType,
 		&i.Size,
 		&i.Path,
+		&i.UserID,
 		&i.UploadedAt,
 	)
 	return i, err
@@ -53,21 +56,31 @@ func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Rec
 
 const deleteRecord = `-- name: DeleteRecord :exec
 DELETE FROM records
-WHERE id = $1
+WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteRecord(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteRecord, id)
+type DeleteRecordParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteRecord(ctx context.Context, arg DeleteRecordParams) error {
+	_, err := q.db.Exec(ctx, deleteRecord, arg.ID, arg.UserID)
 	return err
 }
 
 const getRecord = `-- name: GetRecord :one
-SELECT id, filename, mime_type, size, path, uploaded_at FROM records
-WHERE id = $1 LIMIT 1
+SELECT id, filename, mime_type, size, path, user_id, uploaded_at FROM records
+WHERE id = $1 AND user_id = $2 LIMIT 1
 `
 
-func (q *Queries) GetRecord(ctx context.Context, id uuid.UUID) (Record, error) {
-	row := q.db.QueryRow(ctx, getRecord, id)
+type GetRecordParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetRecord(ctx context.Context, arg GetRecordParams) (Record, error) {
+	row := q.db.QueryRow(ctx, getRecord, arg.ID, arg.UserID)
 	var i Record
 	err := row.Scan(
 		&i.ID,
@@ -75,17 +88,18 @@ func (q *Queries) GetRecord(ctx context.Context, id uuid.UUID) (Record, error) {
 		&i.MimeType,
 		&i.Size,
 		&i.Path,
+		&i.UserID,
 		&i.UploadedAt,
 	)
 	return i, err
 }
 
 const listRecords = `-- name: ListRecords :many
-SELECT id, filename, mime_type, size, path, uploaded_at FROM records
+SELECT id, filename, mime_type, size, path, user_id, uploaded_at FROM records WHERE user_id = $1
 `
 
-func (q *Queries) ListRecords(ctx context.Context) ([]Record, error) {
-	rows, err := q.db.Query(ctx, listRecords)
+func (q *Queries) ListRecords(ctx context.Context, userID uuid.UUID) ([]Record, error) {
+	rows, err := q.db.Query(ctx, listRecords, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +113,7 @@ func (q *Queries) ListRecords(ctx context.Context) ([]Record, error) {
 			&i.MimeType,
 			&i.Size,
 			&i.Path,
+			&i.UserID,
 			&i.UploadedAt,
 		); err != nil {
 			return nil, err

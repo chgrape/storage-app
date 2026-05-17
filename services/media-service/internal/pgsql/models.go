@@ -16,5 +16,6 @@ type Record struct {
 	MimeType   string
 	Size       int64
 	Path       string
+	UserID     uuid.UUID
 	UploadedAt time.Time
 }

@@ -19,12 +19,16 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file found, using environment variables")
+	}
+
 	var err error
 	var cfg shared.Config
 	var pool *pgxpool.Pool
 	var uploadDir string
 
-	if os.Getenv("ENVIORNMENT") == "dev" {
+	if os.Getenv("ENVIRONMENT") == "dev" {
 		err = godotenv.Load()
 		if err != nil {
 			panic(1)
@@ -38,7 +42,7 @@ func main() {
 		}
 		pool, err = shared.Connect(cfg)
 		if err != nil {
-			log.Fatalf("Connection to database couldn't be established: %v", err)
+			log.Fatalf("Connection to dev database couldn't be established: %v", err)
 		}
 		uploadDir, err = filepath.Abs("./uploads")
 		if err != nil {
@@ -48,7 +52,7 @@ func main() {
 	} else if os.Getenv("ENVIRONMENT") == "prod" {
 		pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 		if err != nil {
-			log.Fatalf("Connection to database couldn't be established: %v", err)
+			log.Fatalf("Connection to prod database couldn't be established: %v", err)
 		}
 	} else {
 		log.Fatalf("Connection to database couldn't be established: %v", err)

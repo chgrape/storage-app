@@ -8,28 +8,11 @@ import (
 	"path/filepath"
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
+	"github.com/chgrape/storage-app/shared"
 )
 
 type DiskStore struct {
 	uploadDir string
-}
-
-var extMap = map[string]string{
-	"image/jpeg":      ".jpg",
-	"image/png":       ".png",
-	"image/gif":       ".gif",
-	"image/webp":      ".webp",
-	"video/mp4":       ".mp4",
-	"video/quicktime": ".mov",
-	"video/x-msvideo": ".avi",
-	"video/webm":      ".webm",
-}
-
-func extFromMIME(mimeType string) string {
-	if ext, ok := extMap[mimeType]; ok {
-		return ext
-	}
-	return ""
 }
 
 func (d DiskStore) Delete(ctx context.Context, path string) error {
@@ -51,7 +34,7 @@ func (d DiskStore) Download(ctx context.Context, path string) (*os.File, error) 
 
 func (d DiskStore) Save(ctx context.Context, file io.Reader, rec *repository.FileRecord) (*os.File, error) {
 	dir := filepath.Join(d.uploadDir, rec.UploadedAt.Format("2006/01"))
-	extension := extFromMIME(rec.MIMEType)
+	extension := shared.ExtFromMIME(rec.MIMEType)
 	if extension == "" {
 		return nil, errors.New("invalid media type")
 	}

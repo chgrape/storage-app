@@ -15,6 +15,7 @@ message UploadRequest {
     string mime = 2;
     int64 size = 3;
     bytes data = 4;
+    string user_id = 5;
 }
 
 message UploadResponse {
@@ -23,6 +24,7 @@ message UploadResponse {
 
 message DownloadRequest {
     string id = 1;
+    string user_id = 2;
 }
 
 message DownloadResponse {
@@ -37,9 +39,12 @@ message FileRecord {
     string mime_type = 3;
     int64  size = 4;
     string uploaded_at = 5;
+    string user_id = 6;
 }
 
-message ListRequest {}
+message ListRequest {
+    string user_id = 1;
+}
 
 message ListResponse {
     repeated FileRecord files = 1;
@@ -47,6 +52,7 @@ message ListResponse {
 
 message DeleteRequest {
     string id = 1;
+    string user_id = 2;
 }
 
 message DeleteResponse {
