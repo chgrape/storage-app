@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/chgrape/storage-app/services/api_gateway/clients"
+	"github.com/chgrape/storage-app/services/api-gateway/clients"
 	pb "github.com/chgrape/storage-app/shared/gen"
 )
 

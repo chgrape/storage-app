@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+data:
+  media_service_addr: "media-service:9090"
+  keycloak_addr: "keycloak-service:8080"
+  

@@ -9,14 +9,22 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"text/tabwriter"
+	"time"
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/google/uuid"
 )
+
+type authTokens struct {
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresIn    time.Time `json:"expires_in"`
+}
 
 func fetchList(c http.Client) ([]repository.FileRecord, error) {
 	res, err := c.Get("http://localhost:8081/list")
@@ -172,11 +180,44 @@ func delete(c http.Client, id int) error {
 	return nil
 }
 
+func login(c http.Client, username string, password string) error {
+	values := url.Values{}
+	values.Add("username", username)
+	values.Add("password", password)
+
+	res, err := c.PostForm("http://localhost:8081/login", values)
+	if err != nil {
+		return fmt.Errorf("login failed: %v", err)
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	configPath := filepath.Join(os.Getenv("HOME"), ".tube")
+	if err := os.MkdirAll(configPath, 0700); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(configPath, "config"), body, 0600); err != nil {
+		return err
+	}
+
+	fmt.Println("Login successful!")
+	return nil
+
+}
+
 func main() {
 	downloadCmd := flag.NewFlagSet("download", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 	uploadCmd := flag.NewFlagSet("upload", flag.ExitOnError)
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
+	loginCmd := flag.NewFlagSet("login", flag.ExitOnError)
+
+	var username string
+	var password string
 
 	dst := downloadCmd.String("dst", "", "Destination of downloaded file")
 	id := downloadCmd.Int("id", 0, "Id of file to be downloaded")
@@ -197,6 +238,18 @@ func main() {
 	c := http.Client{}
 
 	switch os.Args[1] {
+	case "login":
+		loginCmd.Parse(os.Args[2:])
+		fmt.Printf("Username: ")
+		fmt.Scan(&username)
+		fmt.Printf("Password: ")
+		fmt.Scan(&password)
+
+		if err := login(c, username, password); err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
+		}
+
 	case "delete":
 		if len(os.Args) == 2 {
 			fmt.Println("The 'delete' command is used to delete records from the storage system")
