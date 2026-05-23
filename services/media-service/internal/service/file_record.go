@@ -65,7 +65,7 @@ func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID, user_id uuid
 	return record, file, nil
 }
 
-func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata shared.Metadata) (*uuid.UUID, error) {
+func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata shared.Metadata, user_id uuid.UUID) (*uuid.UUID, error) {
 	uuid := uuid.New()
 	upl := time.Now()
 
@@ -74,6 +74,7 @@ func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata share
 		Size:       metadata.Size,
 		MIMEType:   metadata.MimeType,
 		ID:         uuid,
+		UserID:     user_id,
 		UploadedAt: upl,
 	}
 

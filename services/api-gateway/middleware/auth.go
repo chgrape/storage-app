@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -21,8 +22,10 @@ func Auth(jwks jwt.Keyfunc, next http.Handler) http.Handler {
 		}
 
 		token, err := jwt.Parse(tokenStr, jwks)
+		fmt.Println(token.Valid)
+		fmt.Println(err)
 		if err != nil || !token.Valid {
-			http.Error(w, "error: unauthorized", http.StatusUnauthorized)
+			http.Error(w, fmt.Sprintf("error: unauthorized: %v", err), http.StatusUnauthorized)
 			return
 		}
 

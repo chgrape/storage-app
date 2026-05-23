@@ -25,12 +25,17 @@ func NewGRPCServer(svc *service.FileRecordSvc) server {
 }
 
 func (s *server) Upload(ctx context.Context, uploadRequest *pb.UploadRequest) (*pb.UploadResponse, error) {
+	user_id, err := uuid.Parse(uploadRequest.UserId)
+	if err != nil {
+		return nil, err
+	}
+
 	reader := bytes.NewReader(uploadRequest.Data)
 	id, err := s.svc.Save(ctx, reader, shared.Metadata{
 		Filename: uploadRequest.Filename,
 		MimeType: uploadRequest.Mime,
 		Size:     uploadRequest.Size,
-	})
+	}, user_id)
 	if err != nil {
 		return nil, err
 	}

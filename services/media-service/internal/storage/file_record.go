@@ -34,6 +34,7 @@ func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID, user_id uui
 		MIMEType:   rec.MimeType,
 		Size:       rec.Size,
 		Path:       rec.Path,
+		UserID:     rec.UserID,
 		UploadedAt: rec.UploadedAt,
 	}, nil
 
@@ -54,6 +55,7 @@ func (repo *pgFileRecordRepo) List(ctx context.Context, user_id uuid.UUID) ([]re
 			MIMEType:   rec.MimeType,
 			Size:       rec.Size,
 			Path:       rec.Path,
+			UserID:     rec.UserID,
 			UploadedAt: rec.UploadedAt,
 		})
 	}
@@ -68,6 +70,7 @@ func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord)
 		Path:       f.Path,
 		MimeType:   f.MIMEType,
 		Size:       f.Size,
+		UserID:     f.UserID,
 		UploadedAt: f.UploadedAt,
 	})
 	return repository.FileRecord{
@@ -76,6 +79,7 @@ func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord)
 		Path:       rec.Path,
 		MIMEType:   rec.MimeType,
 		Size:       rec.Size,
+		UserID:     rec.UserID,
 		UploadedAt: rec.UploadedAt,
 	}, err
 }

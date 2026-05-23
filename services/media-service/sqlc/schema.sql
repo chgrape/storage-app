@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+DROP TABLE IF EXISTS records;
+
 CREATE TABLE records (
   id UUID PRIMARY KEY,
   filename TEXT NOT NULL,

@@ -13,26 +13,42 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 	"time"
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
-	"github.com/google/uuid"
 )
 
 type authTokens struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	ExpiresIn    time.Time `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int    `json:"expires_in"`
+}
+
+type authTransport struct {
+	token string
+	base  http.RoundTripper
+}
+
+func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer "+t.token)
+	return t.base.RoundTrip(req)
 }
 
 func fetchList(c http.Client) ([]repository.FileRecord, error) {
 	res, err := c.Get("http://localhost:8081/list")
-
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("server returned %d: %s", res.StatusCode,
+			strings.TrimSpace(string(body)))
+	}
 
 	var records []repository.FileRecord
 	if err := json.NewDecoder(res.Body).Decode(&records); err != nil {
@@ -51,20 +67,18 @@ func download(c http.Client, id int, dst string) error {
 	if id < 1 || id > len(records) {
 		return errors.New("invalid index")
 	}
-	var record repository.FileRecord
 
-	for i, r := range records {
-		if i+1 == id {
-			record = r
-		}
-	}
-	if record == (repository.FileRecord{}) {
-		return errors.New("file not found")
-	}
+	record := records[id-1]
 
 	res, err := c.Get(fmt.Sprintf("http://localhost:8081/download/%s", record.ID.String()))
 	if err != nil {
 		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("download error %d: %v", res.StatusCode, strings.TrimSpace(string(body)))
 	}
 
 	fullpath := filepath.Join(dst, record.Filename)
@@ -72,19 +86,16 @@ func download(c http.Client, id int, dst string) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	_, err = io.Copy(file, res.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func list(c http.Client) error {
 	records, err := fetchList(c)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
@@ -126,6 +137,10 @@ func upload(c http.Client, src string) error {
 	writer.Close()
 
 	res, err := c.Post("http://localhost:8081/upload", writer.FormDataContentType(), body)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
 
 	b, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
@@ -146,20 +161,10 @@ func delete(c http.Client, id int) error {
 	if id < 1 || id > len(records) {
 		return errors.New("invalid index")
 	}
-	var u uuid.NullUUID
 
-	for i, r := range records {
-		if i+1 == id {
-			u.UUID = r.ID
-			u.Valid = true
-		}
-	}
+	u := records[id-1].ID
 
-	if !u.Valid {
-		return errors.New("record not found")
-	}
-
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8081/delete/%s", u.UUID.String()), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8081/delete/%s", u.String()), nil)
 	if err != nil {
 		return err
 	}
@@ -209,6 +214,16 @@ func login(c http.Client, username string, password string) error {
 
 }
 
+func newAuthClient(token string) http.Client {
+	return http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &authTransport{
+			token: token,
+			base:  http.DefaultTransport,
+		},
+	}
+}
+
 func main() {
 	downloadCmd := flag.NewFlagSet("download", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
@@ -235,7 +250,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	c := http.Client{}
+	var tokens authTokens
+
+	config, err := os.Open(filepath.Join(os.Getenv("HOME"), ".tube/config"))
+	if err != nil {
+		fmt.Println("unauthorized")
+		os.Exit(1)
+	}
+
+	err = json.NewDecoder(config).Decode(&tokens)
+	if err != nil {
+		fmt.Printf("config is wrong: %v", err)
+		os.Exit(1)
+	}
+
+	c := newAuthClient(tokens.AccessToken)
 
 	switch os.Args[1] {
 	case "login":
