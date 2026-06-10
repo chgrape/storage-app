@@ -65,29 +65,35 @@ func (s *FileRecordSvc) Download(ctx context.Context, id uuid.UUID, user_id uuid
 	return record, file, nil
 }
 
-func (s *FileRecordSvc) Save(ctx context.Context, file io.Reader, metadata shared.Metadata, user_id uuid.UUID) (*uuid.UUID, error) {
-	uuid := uuid.New()
-	upl := time.Now()
-
-	record := &repository.FileRecord{
+func (s *FileRecordSvc) Init(metadata shared.Metadata, user_id uuid.UUID) (io.WriteCloser, *repository.FileRecord, error) {
+	rec := &repository.FileRecord{
 		Filename:   metadata.Filename,
 		Size:       metadata.Size,
 		MIMEType:   metadata.MimeType,
-		ID:         uuid,
+		ID:         uuid.New(),
 		UserID:     user_id,
-		UploadedAt: upl,
+		UploadedAt: time.Now(),
 	}
 
-	new_file, err := s.store.Save(ctx, file, record)
+	file, err := s.store.CreateFile(rec)
+	if err != nil {
+		return nil, nil, err
+	}
+	return file, rec, nil
+}
+
+func (s *FileRecordSvc) Write(chunk io.Reader, file io.WriteCloser) error {
+	err := s.store.Save(chunk, file)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *FileRecordSvc) Commit(ctx context.Context, record repository.FileRecord) (*uuid.UUID, error) {
+	err := s.repo.Save(ctx, record)
 	if err != nil {
 		return nil, err
 	}
-	defer new_file.Close()
-
-	rec, err := s.repo.Save(ctx, *record)
-	if err != nil {
-		return nil, err
-	}
-
-	return &rec.ID, nil
+	return &record.ID, nil
 }

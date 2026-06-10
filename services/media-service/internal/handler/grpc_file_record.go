@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -24,25 +25,81 @@ func NewGRPCServer(svc *service.FileRecordSvc) server {
 	}
 }
 
-func (s *server) Upload(ctx context.Context, uploadRequest *pb.UploadRequest) (*pb.UploadResponse, error) {
-	user_id, err := uuid.Parse(uploadRequest.UserId)
+func (s *server) Upload(stream grpc.ClientStreamingServer[pb.UploadRequest, pb.UploadResponse]) error {
+
+	init_req, err := stream.Recv()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	reader := bytes.NewReader(uploadRequest.Data)
-	id, err := s.svc.Save(ctx, reader, shared.Metadata{
-		Filename: uploadRequest.Filename,
-		MimeType: uploadRequest.Mime,
-		Size:     uploadRequest.Size,
+	metadata := init_req.GetMetadata()
+	if metadata == nil {
+		return errors.New("no metadata provided")
+	}
+
+	user_id, err := uuid.Parse(metadata.UserId)
+	if err != nil {
+		return err
+	}
+	file, rec, err := s.svc.Init(shared.Metadata{
+		Filename: metadata.Filename,
+		Size:     metadata.Size,
+		MimeType: metadata.Mime,
 	}, user_id)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	defer file.Close()
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			stream.SendAndClose(&pb.UploadResponse{
+				Id:    "",
+				Saved: false,
+				Error: err.Error(),
+			})
+			return err
+		}
+
+		data := req.GetData()
+		if data == nil {
+			return errors.New("no data provided")
+		}
+
+		chunk := bytes.NewReader(data)
+
+		err = s.svc.Write(chunk, file)
+		if err != nil {
+			stream.SendAndClose(&pb.UploadResponse{
+				Id:    "",
+				Saved: false,
+				Error: err.Error(),
+			})
+			return err
+		}
 	}
 
-	return &pb.UploadResponse{
-		Id: id.String(),
-	}, nil
+	id, err := s.svc.Commit(stream.Context(), *rec)
+	if err != nil {
+		stream.SendAndClose(&pb.UploadResponse{
+			Id:    "",
+			Saved: false,
+			Error: err.Error(),
+		})
+		return err
+	}
+
+	stream.SendAndClose(&pb.UploadResponse{
+		Id:    id.String(),
+		Saved: true,
+		Error: "",
+	})
+
+	return nil
 }
 
 func (s *server) Download(downloadRequest *pb.DownloadRequest, stream grpc.ServerStreamingServer[pb.DownloadResponse]) error {

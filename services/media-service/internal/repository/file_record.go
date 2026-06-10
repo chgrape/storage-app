@@ -18,7 +18,7 @@ type FileRecord struct {
 }
 
 type FileRecordRepo interface {
-	Save(ctx context.Context, f FileRecord) (FileRecord, error)
+	Save(ctx context.Context, f FileRecord) error
 	Get(ctx context.Context, id uuid.UUID, user_id uuid.UUID) (FileRecord, error)
 	List(ctx context.Context, user_id uuid.UUID) ([]FileRecord, error)
 	Delete(ctx context.Context, id uuid.UUID, user_id uuid.UUID) error

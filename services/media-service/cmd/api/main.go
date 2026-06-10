@@ -60,7 +60,7 @@ func main() {
 
 	q := pgsql.New(pool)
 
-	repo := storage.NewPgFileRecordRepo(q)
+	repo := pgsql.NewPgFileRecordRepo(q)
 	store := storage.NewDiskStore(uploadDir)
 	svc := service.NewFileRecordSvc(repo, store)
 

@@ -4,22 +4,31 @@ package media;
 option go_package = "github.com/chgrape/storage-app/shared/proto";
 
 service Media {
-    rpc Upload(UploadRequest) returns (UploadResponse);
+    rpc Upload(stream UploadRequest) returns (UploadResponse);
+    //rpc BulkUpload(stream UploadRequest) returns (stream UploadResponse);
     rpc Download(DownloadRequest) returns (stream DownloadResponse);
     rpc List(ListRequest) returns (ListResponse);
     rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
-message UploadRequest {
+message FileMetadata{
     string filename = 1;
     string mime = 2;
     int64 size = 3;
-    bytes data = 4;
-    string user_id = 5;
+    string user_id = 4;
+}
+
+message UploadRequest {
+    oneof payload{
+        FileMetadata metadata = 1;
+        bytes data = 2;
+    }
 }
 
 message UploadResponse {
     string id = 1;
+    string error = 2;
+    bool saved = 3;
 }
 
 message DownloadRequest {

@@ -8,14 +8,15 @@ import (
 )
 
 var extMap = map[string]string{
-	"image/jpeg":      ".jpg",
-	"image/png":       ".png",
-	"image/gif":       ".gif",
-	"image/webp":      ".webp",
-	"video/mp4":       ".mp4",
-	"video/quicktime": ".mov",
-	"video/x-msvideo": ".avi",
-	"video/webm":      ".webm",
+	"image/jpeg":       ".jpg",
+	"image/png":        ".png",
+	"image/gif":        ".gif",
+	"image/webp":       ".webp",
+	"video/mp4":        ".mp4",
+	"video/quicktime":  ".mov",
+	"video/x-msvideo":  ".avi",
+	"video/webm":       ".webm",
+	"video/x-matroska": ".mkv",
 }
 
 func ExtFromMIME(mimeType string) string {

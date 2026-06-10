@@ -240,13 +240,28 @@ func main() {
 	src := uploadCmd.String("src", "", "Source file path")
 
 	if len(os.Args) < 2 {
-		fmt.Println("CLI tool for the storage system\n")
-		fmt.Println("Usage: tube COMMAND\n")
+		fmt.Println("CLI tool for the storage system")
+		fmt.Println("Usage: tube COMMAND")
 		fmt.Println(`Commands:
+	login			After inputing credentials, authenticates you with the platform
 	delete			Deletes media
 	upload			Uploads a media file
 	download		Downloads a file to the local filesystem
 	list			Lists all records of the available files in the storage system`)
+		os.Exit(0)
+	}
+
+	if os.Args[1] == "login" {
+		loginCmd.Parse(os.Args[2:])
+		fmt.Printf("Username: ")
+		fmt.Scan(&username)
+		fmt.Printf("Password: ")
+		fmt.Scan(&password)
+
+		if err := login(*http.DefaultClient, username, password); err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
+		}
 		os.Exit(0)
 	}
 
@@ -267,17 +282,6 @@ func main() {
 	c := newAuthClient(tokens.AccessToken)
 
 	switch os.Args[1] {
-	case "login":
-		loginCmd.Parse(os.Args[2:])
-		fmt.Printf("Username: ")
-		fmt.Scan(&username)
-		fmt.Printf("Password: ")
-		fmt.Scan(&password)
-
-		if err := login(c, username, password); err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
 
 	case "delete":
 		if len(os.Args) == 2 {

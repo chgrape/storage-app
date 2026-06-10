@@ -9,7 +9,8 @@ import (
 )
 
 type Store interface {
-	Save(ctx context.Context, file io.Reader, rec *repository.FileRecord) (*os.File, error)
+	Save(chunk io.Reader, file io.WriteCloser) error
 	Delete(ctx context.Context, path string) error
 	Download(ctx context.Context, path string) (*os.File, error)
+	CreateFile(rec *repository.FileRecord) (io.WriteCloser, error)
 }

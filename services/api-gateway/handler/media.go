@@ -87,24 +87,50 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	ext := filepath.Ext(header.Filename)
 	mime := mime.TypeByExtension(ext)
 
-	data, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error: invalid data: %v", err), http.StatusBadRequest)
-		return
-	}
-
-	req := &pb.UploadRequest{
-		Filename: header.Filename,
-		Mime:     mime,
-		Size:     header.Size,
-		Data:     data,
-		UserId:   userID,
-	}
-
-	res, err := h.media.Client.Upload(r.Context(), req)
+	stream, err := h.media.Client.Upload(r.Context())
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: couldn't upload data: %v", err), http.StatusInternalServerError)
 		return
+	}
+
+	var res *pb.UploadResponse
+	metadata := pb.FileMetadata{
+		Filename: header.Filename,
+		Mime:     mime,
+		Size:     header.Size,
+		UserId:   userID,
+	}
+	stream.Send(&pb.UploadRequest{
+		Payload: &pb.UploadRequest_Metadata{
+			Metadata: &metadata,
+		},
+	})
+
+	buf := make([]byte, 1024*1024) // 1 MB buffer
+	for {
+		_, err := file.Read(buf)
+		if err == io.EOF {
+			res, err = stream.CloseAndRecv()
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error: couldn't close stream: %v", err), http.StatusInternalServerError)
+				return
+			}
+			if res.Error != "" {
+				http.Error(w, fmt.Sprintf("error: error during saving procedure: %v", err), http.StatusInternalServerError)
+				return
+			}
+			break
+		}
+
+		req := &pb.UploadRequest_Data{
+			Data: buf,
+		}
+
+		err = stream.Send(&pb.UploadRequest{Payload: req})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: couldn't stream request: %v", err), http.StatusInternalServerError)
+		}
+
 	}
 
 	w.Header().Add("Content-Type", "application/json")

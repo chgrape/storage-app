@@ -1,26 +1,25 @@
-package storage
+package pgsql
 
 import (
 	"context"
 
-	"github.com/chgrape/storage-app/services/media-service/internal/pgsql"
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
 	"github.com/google/uuid"
 )
 
 type pgFileRecordRepo struct {
-	q *pgsql.Queries
+	q *Queries
 }
 
 func (repo *pgFileRecordRepo) Delete(ctx context.Context, id uuid.UUID, user_id uuid.UUID) error {
-	return repo.q.DeleteRecord(ctx, pgsql.DeleteRecordParams{
+	return repo.q.DeleteRecord(ctx, DeleteRecordParams{
 		ID:     id,
 		UserID: user_id,
 	})
 }
 
 func (repo *pgFileRecordRepo) Get(ctx context.Context, id uuid.UUID, user_id uuid.UUID) (repository.FileRecord, error) {
-	rec, err := repo.q.GetRecord(ctx, pgsql.GetRecordParams{
+	rec, err := repo.q.GetRecord(ctx, GetRecordParams{
 		ID:     id,
 		UserID: user_id,
 	})
@@ -63,8 +62,8 @@ func (repo *pgFileRecordRepo) List(ctx context.Context, user_id uuid.UUID) ([]re
 	return res, nil
 }
 
-func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord) (repository.FileRecord, error) {
-	rec, err := repo.q.CreateRecord(ctx, pgsql.CreateRecordParams{
+func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord) error {
+	_, err := repo.q.CreateRecord(ctx, CreateRecordParams{
 		ID:         f.ID,
 		Filename:   f.Filename,
 		Path:       f.Path,
@@ -73,17 +72,9 @@ func (repo *pgFileRecordRepo) Save(ctx context.Context, f repository.FileRecord)
 		UserID:     f.UserID,
 		UploadedAt: f.UploadedAt,
 	})
-	return repository.FileRecord{
-		ID:         rec.ID,
-		Filename:   rec.Filename,
-		Path:       rec.Path,
-		MIMEType:   rec.MimeType,
-		Size:       rec.Size,
-		UserID:     rec.UserID,
-		UploadedAt: rec.UploadedAt,
-	}, err
+	return err
 }
 
-func NewPgFileRecordRepo(q *pgsql.Queries) repository.FileRecordRepo {
+func NewPgFileRecordRepo(q *Queries) repository.FileRecordRepo {
 	return &pgFileRecordRepo{q: q}
 }
