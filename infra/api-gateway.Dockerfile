@@ -14,6 +14,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/api-gateway ./cmd/main.go
 
 FROM alpine
 
+RUN apk add --no-cache mailcap
+
 COPY --from=builder /bin/api-gateway /bin/api-gateway
 
 CMD ["/bin/api-gateway"]
