@@ -14,6 +14,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/media-service ./cmd/api/main.go
 
 FROM alpine
 
+RUN apk add --no-cache mailcap
+
 COPY --from=builder /bin/media-service /bin/media-service
 
 CMD ["/bin/media-service"]
