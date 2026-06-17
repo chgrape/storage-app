@@ -54,6 +54,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("Connection to prod database couldn't be established: %v", err)
 		}
+		uploadDir, err = filepath.Abs(os.Getenv("DATA_DIR"))
+		if err != nil {
+			log.Fatalf("Upload directory doesn't exist")
+			return
+		}
 	} else {
 		log.Fatalf("Connection to database couldn't be established: %v", err)
 	}
