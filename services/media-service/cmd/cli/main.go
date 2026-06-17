@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -148,6 +149,25 @@ func upload(c http.Client, src string) error {
 	}
 
 	fmt.Println(string(b))
+
+	return nil
+}
+
+func bulk_upload(dir string) error {
+	stat, err := os.Stat(dir)
+	if err != nil {
+		return err
+	}
+
+	if !stat.IsDir() {
+		return fmt.Errorf("%s is not a directory", dir)
+	}
+
+	var files io.ReadCloser
+
+	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+
+	})
 
 	return nil
 }

@@ -22,9 +22,7 @@ func Auth(jwks jwt.Keyfunc, next http.Handler) http.Handler {
 		}
 
 		token, err := jwt.Parse(tokenStr, jwks)
-		fmt.Println(token.Valid)
-		fmt.Println(err)
-		if err != nil || !token.Valid {
+		if err != nil || token == nil || !token.Valid {
 			http.Error(w, fmt.Sprintf("error: unauthorized: %v", err), http.StatusUnauthorized)
 			return
 		}

@@ -1,0 +1,24 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: default
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: postgres-cluster-rw
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: postgres-cluster-app
+      key: user
+    passwordSecret:
+      name: postgres-cluster-app
+      key: password
+  http:
+    httpEnabled: true
+    httpPort: 8080
+  hostname:
+    strict: false
+  startOptimized: false

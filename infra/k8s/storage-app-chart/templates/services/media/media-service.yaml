@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-app
+spec:
+  selector:
+    matchLabels:
+      app: media-app
+  template:
+    metadata:
+      labels:
+        app: media-app
+    spec:
+      containers:
+        - name: media-app
+          image: chgrape69/media-service:latest
+          env:
+          # database url was created from cnpg secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-cluster-app
+                  key: uri
+            - name: GRPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: grpc_port
+            - name: DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: data_dir
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: media-config
+                  key: environ
+          volumeMounts:
+            - name: media-storage
+              mountPath: /upload
+      volumes:
+        - name: media-storage
+          persistentVolumeClaim:
+            claimName: media-storage-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-service
+spec:
+  selector:
+    app: media-app
+  ports:
+  - port: 9090
+    targetPort: 9090

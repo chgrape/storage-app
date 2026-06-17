@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-cluster
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+
+  bootstrap:
+    initdb:
+      postInitSQL:
+        - CREATE DATABASE keycloak OWNER app;
+
+  storage:
+    size: 1Gi

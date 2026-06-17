@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-db-init
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:bookworm
+          command: ["sh", "-c", "until pg_isready -h postgres-cluster-rw -p 5432; do sleep 2; done"]
+      containers:
+        - name: create-db
+          image: postgres:bookworm
+          command:
+            - sh
+            - -c
+            - |
+              psql $(DATABASE_URL) -tc "SELECT 1 FROM pg_database WHERE datname='keycloak'" | grep -q 1 || psql $(DATABASE_URL) -c "CREATE DATABASE keycloak;"
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-cluster-app
+                  key: uri
+      restartPolicy: OnFailure
