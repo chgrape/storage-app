@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
+	"golang.org/x/sync/errgroup"
 )
 
 type authTokens struct {
@@ -122,6 +124,11 @@ func upload(c http.Client, src string) error {
 	}
 	defer file.Close()
 
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
 	pipe_r, pipe_w := io.Pipe()
 	writer := multipart.NewWriter(pipe_w)
 
@@ -137,7 +144,14 @@ func upload(c http.Client, src string) error {
 
 	}()
 
-	res, err := c.Post("http://localhost:8081/upload", writer.FormDataContentType(), pipe_r)
+	req, err := http.NewRequest("POST", "http://localhost:8081/upload", pipe_r)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("X-File-Size", fmt.Sprint(info.Size()))
+
+	res, err := c.Do(req)
 	if err != nil {
 		return err
 	}
@@ -153,24 +167,44 @@ func upload(c http.Client, src string) error {
 	return nil
 }
 
-// func bulk_upload(dir string) error {
-// 	stat, err := os.Stat(dir)
-// 	if err != nil {
-// 		return err
-// 	}
+func bulk_upload(c http.Client, dir string) error {
+	stat, err := os.Stat(dir)
+	if err != nil {
+		return err
+	}
 
-// 	if !stat.IsDir() {
-// 		return fmt.Errorf("%s is not a directory", dir)
-// 	}
+	if !stat.IsDir() {
+		return fmt.Errorf("%s is not a directory", dir)
+	}
 
-// 	var files io.ReadCloser
+	var filepaths []string
 
-// 	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() && path != dir {
+			return fs.SkipDir
+		}
+		if !d.IsDir() {
+			filepaths = append(filepaths, path)
 
-// 	})
+		}
 
-// 	return nil
-// }
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	var wg errgroup.Group
+	wg.SetLimit(4)
+
+	for _, path := range filepaths {
+		wg.Go(func() error {
+			return upload(c, path)
+		})
+	}
+
+	return wg.Wait()
+}
 
 func delete(c http.Client, id int) error {
 	records, err := fetchList(c)
@@ -258,6 +292,7 @@ func main() {
 	id := downloadCmd.Int("id", 0, "Id of file to be downloaded")
 	deleteId := deleteCmd.Int("id", 0, "Id of file to be deleted")
 	src := uploadCmd.String("src", "", "Source file path")
+	bulk := uploadCmd.Bool("bulk", false, "Is this a bulk upload?")
 
 	if len(os.Args) < 2 {
 		fmt.Println("CLI tool for the storage system")
@@ -335,13 +370,25 @@ func main() {
 			fmt.Println("File doesn't exist")
 			os.Exit(1)
 		}
-		if info.IsDir() == true {
-			fmt.Printf("%s is not a file\n", *src)
-			os.Exit(1)
-		}
-		if err := upload(c, *src); err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
+
+		if *bulk {
+			if !info.IsDir() {
+				fmt.Printf("%s is not a directory\n", *src)
+				os.Exit(1)
+			}
+			if err := bulk_upload(c, *src); err != nil {
+				fmt.Println("error:", err)
+				os.Exit(1)
+			}
+		} else {
+			if info.IsDir() {
+				fmt.Printf("%s is not a file\n", *src)
+				os.Exit(1)
+			}
+			if err := upload(c, *src); err != nil {
+				fmt.Println("error:", err)
+				os.Exit(1)
+			}
 		}
 
 	case "list":
