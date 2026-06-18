@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -124,20 +122,22 @@ func upload(c http.Client, src string) error {
 	}
 	defer file.Close()
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
+	pipe_r, pipe_w := io.Pipe()
+	writer := multipart.NewWriter(pipe_w)
 
-	part, err := writer.CreateFormFile("file", filepath.Base(src))
-	if err != nil {
-		return err
-	}
+	go func() {
+		part, _ := writer.CreateFormFile("file", filepath.Base(src))
+		if err != nil {
+			pipe_w.CloseWithError(err)
+			return
+		}
+		io.Copy(part, file)
+		writer.Close()
+		pipe_w.Close()
 
-	if _, err = io.Copy(part, file); err != nil {
-		return err
-	}
-	writer.Close()
+	}()
 
-	res, err := c.Post("http://localhost:8081/upload", writer.FormDataContentType(), body)
+	res, err := c.Post("http://localhost:8081/upload", writer.FormDataContentType(), pipe_r)
 	if err != nil {
 		return err
 	}
@@ -153,24 +153,24 @@ func upload(c http.Client, src string) error {
 	return nil
 }
 
-func bulk_upload(dir string) error {
-	stat, err := os.Stat(dir)
-	if err != nil {
-		return err
-	}
+// func bulk_upload(dir string) error {
+// 	stat, err := os.Stat(dir)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if !stat.IsDir() {
-		return fmt.Errorf("%s is not a directory", dir)
-	}
+// 	if !stat.IsDir() {
+// 		return fmt.Errorf("%s is not a directory", dir)
+// 	}
 
-	var files io.ReadCloser
+// 	var files io.ReadCloser
 
-	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+// 	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 
-	})
+// 	})
 
-	return nil
-}
+// 	return nil
+// }
 
 func delete(c http.Client, id int) error {
 	records, err := fetchList(c)

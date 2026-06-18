@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/chgrape/storage-app/services/api-gateway/clients"
 	"github.com/chgrape/storage-app/services/api-gateway/middleware"
@@ -77,14 +78,19 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("file")
+	reader, err := r.MultipartReader()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
-	ext := filepath.Ext(header.Filename)
+	part, err := reader.NextPart()
+	if err != nil {
+		http.Error(w, "couldn't get next part", http.StatusInternalServerError)
+		return
+	}
+
+	ext := filepath.Ext(part.FileName())
 	mime := mime.TypeByExtension(ext)
 
 	stream, err := h.media.Client.Upload(r.Context())
@@ -93,11 +99,17 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	size, err := strconv.ParseInt(r.Header.Get("X-File-Size"), 10, 64)
+	if err != nil {
+		http.Error(w, "X-File-Size wasn't passed", http.StatusBadRequest)
+		return
+	}
+
 	var res *pb.UploadResponse
 	metadata := pb.FileMetadata{
-		Filename: header.Filename,
+		Filename: part.FileName(),
 		Mime:     mime,
-		Size:     header.Size,
+		Size:     size,
 		UserId:   userID,
 	}
 	stream.Send(&pb.UploadRequest{
@@ -108,8 +120,19 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	buf := make([]byte, 1024*1024) // 1 MB buffer
 	for {
-		_, err := file.Read(buf)
+		n, err := part.Read(buf)
 		if err == io.EOF {
+			if n > 0 {
+				req := &pb.UploadRequest_Data{
+					Data: buf[:n],
+				}
+
+				err = stream.Send(&pb.UploadRequest{Payload: req})
+				if err != nil {
+					http.Error(w, fmt.Sprintf("error: couldn't stream request: %v", err), http.StatusInternalServerError)
+					return
+				}
+			}
 			res, err = stream.CloseAndRecv()
 			if err != nil {
 				http.Error(w, fmt.Sprintf("error: couldn't close stream: %v", err), http.StatusInternalServerError)
@@ -123,12 +146,13 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req := &pb.UploadRequest_Data{
-			Data: buf,
+			Data: buf[:n],
 		}
 
 		err = stream.Send(&pb.UploadRequest{Payload: req})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("error: couldn't stream request: %v", err), http.StatusInternalServerError)
+			return
 		}
 
 	}
