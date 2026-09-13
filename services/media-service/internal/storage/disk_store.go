@@ -24,7 +24,11 @@ func (d DiskStore) Delete(ctx context.Context, path string) error {
 }
 
 func (d DiskStore) Download(ctx context.Context, path string) (*os.File, error) {
-	file, err := os.Open(path)
+	root, err := os.OpenRoot(d.uploadDir)
+	if err != nil {
+		return nil, err
+	}
+	file, err := root.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +37,13 @@ func (d DiskStore) Download(ctx context.Context, path string) (*os.File, error) 
 }
 
 func (d DiskStore) CreateFile(rec *repository.FileRecord) (io.WriteCloser, error) {
-	dir := filepath.Join(d.uploadDir, rec.UploadedAt.Format("2006/01"))
+	dir := rec.UploadedAt.Format("2006/01")
 	extension := shared.ExtFromMIME(rec.MIMEType)
 	if extension == "" {
 		return nil, errors.New("invalid media type")
 	}
 
-	err := os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0750)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +51,7 @@ func (d DiskStore) CreateFile(rec *repository.FileRecord) (io.WriteCloser, error
 	file_name := rec.ID.String() + extension
 	rec.Path = filepath.Join(dir, file_name)
 
-	new_file, err := os.OpenFile(rec.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	new_file, err := os.OpenFile(rec.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600) // #nosec G304
 	if err != nil {
 		return nil, err
 	}

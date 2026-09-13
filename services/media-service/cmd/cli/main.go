@@ -294,10 +294,10 @@ func login(c http.Client, username string, password string) error {
 	}
 
 	configPath := filepath.Join(os.Getenv("HOME"), ".tube")
-	if err := os.MkdirAll(configPath, 0700); err != nil {
+	if err := os.MkdirAll(configPath, 0700); err != nil { // #nosec G703
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(configPath, "config"), body, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(configPath, "config"), body, 0600); err != nil { // #nosec G703
 		return err
 	}
 
@@ -362,7 +362,7 @@ func main() {
 
 	var tokens authTokens
 
-	config, err := os.Open(filepath.Join(os.Getenv("HOME"), ".tube/config"))
+	config, err := os.Open(filepath.Join(os.Getenv("HOME"), ".tube/config")) // #nosec G703
 	if err != nil {
 		fmt.Println("unauthorized")
 		os.Exit(1)

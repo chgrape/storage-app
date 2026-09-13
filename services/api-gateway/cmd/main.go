@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/chgrape/storage-app/services/api-gateway/clients"
@@ -42,6 +43,14 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	srv := &http.Server{
+		Addr:         "0.0.0.0:8081",
+		Handler:      mux,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
 	mux.HandleFunc("POST /login", handler.Login)
 
 	mux.Handle("GET /download/{id}", middleware.Auth(keycloakKeys.Keyfunc, http.HandlerFunc(h.Download)))
@@ -49,7 +58,7 @@ func main() {
 	mux.Handle("POST /upload", middleware.Auth(keycloakKeys.Keyfunc, http.HandlerFunc(h.Upload)))
 	mux.Handle("DELETE /delete/{id}", middleware.Auth(keycloakKeys.Keyfunc, http.HandlerFunc(h.Erase)))
 
-	err = http.ListenAndServe("0.0.0.0:8081", mux)
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error: couldn't start api gateway: %v", err)
 	}
