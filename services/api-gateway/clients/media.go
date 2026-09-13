@@ -25,6 +25,10 @@ func NewMediaClient(addr string) (*MediaClient, error) {
 	}, nil
 }
 
-func (m *MediaClient) Close() {
-	m.conn.Close()
+func (m *MediaClient) Close() error {
+	err := m.conn.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }

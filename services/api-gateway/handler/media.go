@@ -50,7 +50,11 @@ func (h *mediaHandler) Download(w http.ResponseWriter, r *http.Request) {
 		if err == io.EOF {
 			break
 		}
-		w.Write(chunk.Data)
+		_, err = w.Write(chunk.Data)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: failed to write chunk to response: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -68,7 +72,10 @@ func (h *mediaHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res.Files)
+	err = json.NewEncoder(w).Encode(res.Files)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: couldn't encode response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
@@ -112,11 +119,14 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		Size:     size,
 		UserId:   userID,
 	}
-	stream.Send(&pb.UploadRequest{
+	err = stream.Send(&pb.UploadRequest{
 		Payload: &pb.UploadRequest_Metadata{
 			Metadata: &metadata,
 		},
 	})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: error sending grpc request: %v", err), http.StatusInternalServerError)
+	}
 
 	buf := make([]byte, 1024*1024) // 1 MB buffer
 	for {
@@ -129,6 +139,9 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 				err = stream.Send(&pb.UploadRequest{Payload: req})
 				if err != nil {
+					if err != nil {
+						http.Error(w, fmt.Sprintf("error: couldn't encode response: %v", err), http.StatusInternalServerError)
+					}
 					http.Error(w, fmt.Sprintf("error: couldn't stream request: %v", err), http.StatusInternalServerError)
 					return
 				}
@@ -158,7 +171,10 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res.Id)
+	err = json.NewEncoder(w).Encode(res.Id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: couldn't encode response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func (h *mediaHandler) Erase(w http.ResponseWriter, r *http.Request) {
@@ -179,9 +195,12 @@ func (h *mediaHandler) Erase(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !res.Success {
-		w.Write([]byte("Record couldn't be deleted"))
+		http.Error(w, "error: file could not be deleted", http.StatusInternalServerError)
 		return
 	}
 
-	w.Write([]byte("Record successfully deleted"))
+	_, err = w.Write([]byte("record deleted successfully"))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: couldn't write response: %v", err), http.StatusInternalServerError)
+	}
 }

@@ -77,5 +77,8 @@ func main() {
 	grpcServer := grpc.NewServer()
 	sv := handler.NewGRPCServer(&svc)
 	pb.RegisterMediaServer(grpcServer, &sv)
-	grpcServer.Serve(lis)
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.Fatalf("media service couldn't start: %v", err)
+	}
 }

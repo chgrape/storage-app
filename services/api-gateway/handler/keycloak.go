@@ -31,5 +31,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
-	io.Copy(w, res.Body)
+	_, err = io.Copy(w, res.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: couldn't write response: %v", err), http.StatusInternalServerError)
+	}
 }

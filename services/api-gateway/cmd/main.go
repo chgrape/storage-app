@@ -44,5 +44,8 @@ func main() {
 	mux.Handle("POST /upload", middleware.Auth(keycloakKeys.Keyfunc, http.HandlerFunc(h.Upload)))
 	mux.Handle("DELETE /delete/{id}", middleware.Auth(keycloakKeys.Keyfunc, http.HandlerFunc(h.Erase)))
 
-	http.ListenAndServe("0.0.0.0:8081", mux)
+	err = http.ListenAndServe("0.0.0.0:8081", mux)
+	if err != nil {
+		log.Fatalf("error: couldn't start api gateway: %v", err)
+	}
 }
