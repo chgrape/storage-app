@@ -11,12 +11,19 @@ jobs:
 
       - name: Setup Go
         uses: actions/setup-go@v5
-      
+        
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13  
 
       - name: Run Gosec
         uses: securego/gosec@master
+        with:
+          args: ./services
 
   build:
+    needs: tests
     runs-on: ubuntu-latest
 
     steps:
