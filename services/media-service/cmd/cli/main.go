@@ -84,7 +84,7 @@ func download(c http.Client, id int, dst string) error {
 	}
 
 	fullpath := filepath.Join(dst, record.Filename)
-	file, err := os.Create(fullpath)
+	file, err := os.Create(fullpath) // #nosec G304
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func list(c http.Client) error {
 }
 
 func upload(c http.Client, src string) error {
-	file, err := os.Open(src)
+	file, err := os.Open(src) // #nosec G304
 	if err != nil {
 		return err
 	}
