@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -43,7 +44,7 @@ func fetchList(c http.Client) ([]repository.FileRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
@@ -75,7 +76,7 @@ func download(c http.Client, id int, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
@@ -87,9 +88,17 @@ func download(c http.Client, id int, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+	}()
+	if err != nil {
+		return err
+	}
 
 	_, err = io.Copy(file, res.Body)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("Successfully uploaded file: %s with size %s at %s\n", record.Filename, shared.FormatSize(record.Size), dst)
 	return err
 }
@@ -101,21 +110,29 @@ func list(c http.Client) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-	fmt.Fprintln(w, "#\tNAME\tTYPE\tSIZE\tUPLOADED")
-	fmt.Fprintln(w, "-\t----\t----\t----\t--------")
+	_, err = fmt.Fprintln(w, "#\tNAME\tTYPE\tSIZE\tUPLOADED")
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(w, "-\t----\t----\t----\t--------")
+	if err != nil {
+		return err
+	}
 
 	for i, r := range records {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
+		_, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			i+1,
 			r.Filename,
 			r.MIMEType,
 			shared.FormatSize(r.Size),
 			r.UploadedAt.Format("2006-01-02 15:04"),
 		)
+		if err != nil {
+			return err
+		}
 	}
-	w.Flush()
 
-	return nil
+	return w.Flush()
 }
 
 func upload(c http.Client, src string) error {
@@ -123,7 +140,12 @@ func upload(c http.Client, src string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+	}()
+	if err != nil {
+		return err
+	}
 
 	info, err := file.Stat()
 	if err != nil {
@@ -134,15 +156,20 @@ func upload(c http.Client, src string) error {
 	writer := multipart.NewWriter(pipe_w)
 
 	go func() {
-		part, _ := writer.CreateFormFile("file", filepath.Base(src))
+		part, err := writer.CreateFormFile("file", filepath.Base(src))
 		if err != nil {
 			pipe_w.CloseWithError(err)
 			return
 		}
-		io.Copy(part, file)
-		writer.Close()
+		if _, err = io.Copy(part, file); err != nil {
+			pipe_w.CloseWithError(err)
+			return
+		}
+		if err = writer.Close(); err != nil {
+			pipe_w.CloseWithError(err)
+			return
+		}
 		pipe_w.Close()
-
 	}()
 
 	req, err := http.NewRequest("POST", "http://localhost:8081/upload", pipe_r)
@@ -156,7 +183,7 @@ func upload(c http.Client, src string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	b, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
@@ -244,7 +271,7 @@ func delete(c http.Client, id int) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	b, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
@@ -265,7 +292,7 @@ func login(c http.Client, username string, password string) error {
 	if err != nil {
 		return fmt.Errorf("login failed: %v", err)
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint: errcheck
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -324,7 +351,9 @@ func main() {
 	}
 
 	if os.Args[1] == "login" {
-		loginCmd.Parse(os.Args[2:])
+		if err := loginCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatalf("error: couldn't parse command: %v", err)
+		}
 		fmt.Printf("Username: ")
 		fmt.Scan(&username)
 		fmt.Printf("Password: ")
@@ -361,7 +390,9 @@ func main() {
 			fmt.Printf(`Usage: tube delete -id int`)
 			os.Exit(0)
 		}
-		deleteCmd.Parse(os.Args[2:])
+		if err = deleteCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatalf("error: couldn't parse command: %v", err)
+		}
 		if *deleteId == 0 {
 			fmt.Println("Invalid id")
 			os.Exit(1)
@@ -377,7 +408,9 @@ func main() {
 			fmt.Printf(`Usage: tube upload -src string`)
 			os.Exit(0)
 		}
-		uploadCmd.Parse(os.Args[2:])
+		if err = uploadCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatalf("error: couldn't parse command: %v", err)
+		}
 		if *src == "" {
 			fmt.Println("Invalid source path")
 			os.Exit(1)
@@ -413,7 +446,9 @@ func main() {
 			fmt.Printf("List doesn't accept arguments")
 			os.Exit(1)
 		}
-		listCmd.Parse(os.Args[2:])
+		if err = listCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatalf("error: couldn't parse command: %v", err)
+		}
 		if err := list(c); err != nil {
 			fmt.Println("error:", err)
 			os.Exit(1)
@@ -425,7 +460,9 @@ func main() {
 			fmt.Printf(`Usage: tube download -id int -dst string`)
 			os.Exit(0)
 		}
-		downloadCmd.Parse(os.Args[2:])
+		if err = downloadCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatalf("error: couldn't parse command: %v", err)
+		}
 		if *dst == "" || *id == 0 {
 			fmt.Println("Invalid destination path or id")
 			os.Exit(1)
@@ -435,7 +472,7 @@ func main() {
 			fmt.Println("Directory doesn't exist")
 			os.Exit(1)
 		}
-		if info.IsDir() == false {
+		if !info.IsDir() {
 			fmt.Printf("%s is not a directory\n", *dst)
 			os.Exit(1)
 		}

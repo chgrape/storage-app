@@ -24,7 +24,12 @@ func main() {
 		log.Fatalf("error establishing connection to service: %s", err)
 		return
 	}
-	defer mediaClient.Close()
+	defer func() {
+		err = mediaClient.Close()
+		if err != nil {
+			log.Fatalf("error:couldn't close connection: %v", err)
+		}
+	}()
 
 	keycloakKeys, err := keyfunc.NewDefault([]string{
 		"http://" + os.Getenv("KEYCLOAK_ADDR") + "/realms/media/protocol/openid-connect/certs",

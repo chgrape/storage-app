@@ -126,6 +126,7 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: error sending grpc request: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	buf := make([]byte, 1024*1024) // 1 MB buffer
@@ -139,9 +140,7 @@ func (h *mediaHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 				err = stream.Send(&pb.UploadRequest{Payload: req})
 				if err != nil {
-					if err != nil {
-						http.Error(w, fmt.Sprintf("error: couldn't encode response: %v", err), http.StatusInternalServerError)
-					}
+
 					http.Error(w, fmt.Sprintf("error: couldn't stream request: %v", err), http.StatusInternalServerError)
 					return
 				}

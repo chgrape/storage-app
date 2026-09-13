@@ -1,0 +1,11 @@
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      check-blank: false
+      exclude-functions:
+        - (*io.PipeWriter).Close
+        - (*io.PipeWriter).CloseWithError
+        - fmt.Printf
+        - fmt.Scan

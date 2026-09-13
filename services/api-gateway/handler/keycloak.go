@@ -27,7 +27,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
