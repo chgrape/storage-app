@@ -49,7 +49,9 @@ func (s *server) Upload(stream grpc.ClientStreamingServer[pb.UploadRequest, pb.U
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = errors.Join(err, file.Close())
+	}()
 
 	for {
 		req, err := stream.Recv()
@@ -57,12 +59,12 @@ func (s *server) Upload(stream grpc.ClientStreamingServer[pb.UploadRequest, pb.U
 			break
 		}
 		if err != nil {
-			stream.SendAndClose(&pb.UploadResponse{
+			serr := stream.SendAndClose(&pb.UploadResponse{
 				Id:    "",
 				Saved: false,
 				Error: err.Error(),
 			})
-			return err
+			return errors.Join(err, serr)
 		}
 
 		data := req.GetData()
@@ -74,30 +76,32 @@ func (s *server) Upload(stream grpc.ClientStreamingServer[pb.UploadRequest, pb.U
 
 		err = s.svc.Write(chunk, file)
 		if err != nil {
-			stream.SendAndClose(&pb.UploadResponse{
+			serr := stream.SendAndClose(&pb.UploadResponse{
 				Id:    "",
 				Saved: false,
 				Error: err.Error(),
 			})
-			return err
+			return errors.Join(err, serr)
 		}
 	}
 
 	id, err := s.svc.Commit(stream.Context(), *rec)
 	if err != nil {
-		stream.SendAndClose(&pb.UploadResponse{
+		serr := stream.SendAndClose(&pb.UploadResponse{
 			Id:    "",
 			Saved: false,
 			Error: err.Error(),
 		})
-		return err
+		return errors.Join(err, serr)
 	}
 
-	stream.SendAndClose(&pb.UploadResponse{
+	if err = stream.SendAndClose(&pb.UploadResponse{
 		Id:    id.String(),
 		Saved: true,
 		Error: "",
-	})
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -117,7 +121,9 @@ func (s *server) Download(downloadRequest *pb.DownloadRequest, stream grpc.Serve
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = errors.Join(err, file.Close())
+	}()
 
 	buf := make([]byte, 32*1024) //32kb buffer
 	for {
@@ -126,11 +132,14 @@ func (s *server) Download(downloadRequest *pb.DownloadRequest, stream grpc.Serve
 			return err
 		}
 		if n > 0 {
-			stream.Send(&pb.DownloadResponse{
+			err = stream.Send(&pb.DownloadResponse{
 				Data:     buf,
 				Mime:     record.MIMEType,
 				Filename: record.Filename,
 			})
+			if err != nil {
+				return err
+			}
 		}
 		if err == io.EOF {
 			break

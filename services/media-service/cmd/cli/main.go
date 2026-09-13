@@ -89,11 +89,8 @@ func download(c http.Client, id int, dst string) error {
 		return err
 	}
 	defer func() {
-		err = file.Close()
+		err = errors.Join(err, file.Close())
 	}()
-	if err != nil {
-		return err
-	}
 
 	_, err = io.Copy(file, res.Body)
 	if err != nil {
@@ -141,11 +138,8 @@ func upload(c http.Client, src string) error {
 		return err
 	}
 	defer func() {
-		err = file.Close()
+		err = errors.Join(err, file.Close())
 	}()
-	if err != nil {
-		return err
-	}
 
 	info, err := file.Stat()
 	if err != nil {
