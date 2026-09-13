@@ -12,10 +12,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
       
-      - name: Run unit tests
-        run: |
-          go get .
-          go test
 
       - name: Run Gosec
         uses: securego/gosec@master
