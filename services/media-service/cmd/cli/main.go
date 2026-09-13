@@ -12,12 +12,12 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
 
 	"github.com/chgrape/storage-app/services/media-service/internal/repository"
+	"github.com/chgrape/storage-app/shared"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -90,6 +90,7 @@ func download(c http.Client, id int, dst string) error {
 	defer file.Close()
 
 	_, err = io.Copy(file, res.Body)
+	fmt.Printf("Successfully uploaded file: %s with size %s at %s\n", record.Filename, shared.FormatSize(record.Size), dst)
 	return err
 }
 
@@ -108,7 +109,7 @@ func list(c http.Client) error {
 			i+1,
 			r.Filename,
 			r.MIMEType,
-			strconv.FormatInt(r.Size, 10),
+			shared.FormatSize(r.Size),
 			r.UploadedAt.Format("2006-01-02 15:04"),
 		)
 	}
@@ -178,16 +179,20 @@ func bulk_upload(c http.Client, dir string) error {
 	}
 
 	var filepaths []string
+	var totalSize int64
 
 	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() && path != dir {
 			return fs.SkipDir
 		}
 		if !d.IsDir() {
+			info, err := d.Info()
+			if err != nil {
+				return err
+			}
 			filepaths = append(filepaths, path)
-
+			totalSize += info.Size()
 		}
-
 		return nil
 	})
 	if err != nil {
@@ -197,11 +202,23 @@ func bulk_upload(c http.Client, dir string) error {
 	var wg errgroup.Group
 	wg.SetLimit(4)
 
+	start := time.Now()
+
 	for _, path := range filepaths {
 		wg.Go(func() error {
 			return upload(c, path)
 		})
 	}
+
+	if err := wg.Wait(); err != nil {
+		return err
+	}
+
+	fmt.Printf("uploaded %d files (%s) in %s\n",
+		len(filepaths),
+		shared.FormatSize(totalSize),
+		time.Since(start).Round(time.Millisecond),
+	)
 
 	return wg.Wait()
 }

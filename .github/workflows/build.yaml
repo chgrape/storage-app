@@ -1,14 +1,29 @@
-name: Build
+name: CI/CD
 on: [push]
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+      
+      - name: Run unit tests
+        run: |
+          go get .
+          go test
+
+      - name: Run Gosec
+        uses: securego/gosec@master
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
