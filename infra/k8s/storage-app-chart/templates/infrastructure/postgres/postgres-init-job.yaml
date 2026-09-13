@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: media-migrate
+  name: db-init
 spec:
   template:
     spec:
@@ -12,7 +12,12 @@ spec:
       containers:
         - name: migrate
           image: postgres:bookworm
-          command: ["psql", "$(DATABASE_URL)", "-f", "/migrations/schema.sql"]
+          command: 
+            - sh
+            - -c
+            - |
+              psql "$DATABASE_URL" -f /migrations/schema.sql
+              psql "$DATABASE_URL" -c "CREATE DATABASE keycloak;"
           env:
             - name: DATABASE_URL
               valueFrom:

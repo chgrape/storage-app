@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: media-config
 data:
-  grpc_port: "9090"
-  data_dir: "/upload"
-  environ: "prod"
+  grpc_port: '{{ .Values.grpc_port }}'
+  data_dir: '{{ .Values.data_dir }}'
+  environ: '{{ .Values.environment }}'

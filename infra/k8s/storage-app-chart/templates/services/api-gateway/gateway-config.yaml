@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: gateway-config
 data:
-  media_service_addr: "media-service:9090"
-  keycloak_addr: "keycloak-service:8080"
+  media_service_addr: 'media-service:{{ .Values.grpc_port }}'
+  keycloak_addr: 'keycloak-service:{{ .Values.keycloak_port }}'
   

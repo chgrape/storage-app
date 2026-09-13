@@ -1,0 +1,4 @@
+environment: "prod"
+keycloak_port: 8080
+grpc_port: 9090
+data_dir: "/upload"

@@ -52,5 +52,5 @@ spec:
   selector:
     app: media-app
   ports:
-  - port: 9090
-    targetPort: 9090
+  - port: {{ .Values.grpc_port }}
+    targetPort: {{ .Values.grpc_port }}
